@@ -3,6 +3,7 @@ import type { Pickaxe } from "../../types/Pickaxe";
 export default {
     name: "Cúp gỗ",
     id: "wooden_pickaxe",
+    biomes: ["plains"],
     price: 0,
     unlock_level: 1,
     description: "Khởi đầu của tất cả",

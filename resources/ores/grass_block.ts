@@ -1,9 +1,9 @@
 import type { Ore } from "../../types/Ore";
 
 export default {
-    name: "Đất",
-    id: "dirt",
-    emoji: "1543277779846438963",
+    name: "Khối cỏ",
+    id: "grass_block",
+    emoji: "1543277781939650691",
     biome: "plains",
     value: 1,
     xp: 1,

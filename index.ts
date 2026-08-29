@@ -14,7 +14,8 @@ declare module "discord.js" {
             biomes: Collection<string, Biome>;
             pickaxes: Collection<string, Pickaxe>;
             ores: Collection<string, Ore>;
-        }
+        };
+        appEmojis: Collection<string, string>;
     }
 }
 
@@ -30,7 +31,7 @@ const client = new Client({
 const token = Bun.env.TOKEN;
 
 if (!token) {
-    throw new Error("Missing process.env.TOKEN")
+    throw new Error("Missing TOKEN")
 }
 
 const commands = new Collection<string, Command>();

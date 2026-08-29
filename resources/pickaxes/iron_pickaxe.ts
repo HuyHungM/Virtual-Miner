@@ -3,6 +3,7 @@ import type { Pickaxe } from "../../types/Pickaxe";
 export default {
     name: "Cúp sắt",
     id: "iron_pickaxe",
+    biomes: ["plains"],
     price: 100000,
     unlock_level: 1,
     description: "Thời kì đồ sắt",

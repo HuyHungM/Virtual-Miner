@@ -7,6 +7,17 @@ interface Commands {
     description: string;
 }
 
+const token = Bun.env.TOKEN;
+const client_id = Bun.env.CLIENT_ID;
+
+if (!token) {
+    throw new Error("Missing TOKEN")
+}
+
+if (!client_id) {
+    throw new Error("Missing CLIENT_ID")
+}
+
 export default async(client : Client) => {
 
     const commands : Commands[] = [];
@@ -28,10 +39,10 @@ export default async(client : Client) => {
 
     const rest = new REST({
         version: "10"
-    }).setToken(Bun.env.TOKEN!);
+    }).setToken(token);
     await rest.put(
         Routes.applicationCommands(
-            Bun.env.CLIENT_ID!,
+            client_id,
         ),
         {
             body: commands

@@ -3,6 +3,7 @@ import type { Pickaxe } from "../../types/Pickaxe";
 export default {
     name: "Cúp đá đỏ",
     id: "redstone_pickaxe",
+    biomes: ["plains"],
     price: 250000,
     unlock_level: 50,
     description: "Hiện đại hại điện",

@@ -4,5 +4,5 @@ export interface Ore {
     emoji: string,
     biome: string,
     value: number,
-    exp: number,
+    xp: number,
 }
