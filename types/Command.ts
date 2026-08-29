@@ -1,10 +1,19 @@
-import type { Client, ChatInputCommandInteraction } from "discord.js";
+import type {
+    Client,
+    ChatInputCommandInteraction,
+    ButtonInteraction,
+} from "discord.js";
+
+export type CommandInteraction =
+    | ChatInputCommandInteraction
+    | ButtonInteraction;
 
 export interface Command {
     name: string;
-    description?: string;
+    description: string;
+
     run: (
         client: Client,
-        interaction: ChatInputCommandInteraction
-    ) => void | Promise<void>;
+        interaction: CommandInteraction,
+    ) => Promise<void>;
 }

@@ -15,6 +15,6 @@ export async function updateBalance(
     return User.findOneAndUpdate(
         { userId },
         { $inc: { balance: amount } },
-        { new: true }
+        { returnDocument: "after" }
     );
 }

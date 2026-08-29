@@ -5,26 +5,32 @@ const InventorySchema = new Schema(
         userId: {
             type: String,
             required: true,
-            unique: true
+            unique: true,
+            index: true,
         },
+
         items: [
             {
                 itemId: {
                     type: String,
-                    required: true
+                    required: true,
                 },
+
                 quantity: {
-                    type: String,
+                    type: Number,
                     required: true,
                     default: 0,
                     min: 0,
-                }
-            }
-        ]
+                },
+            },
+        ],
     },
     {
-        timestamps: true
-    }
-)
+        timestamps: true,
+    },
+);
 
-export default mongoose.model("Inventory", InventorySchema);
+export default mongoose.model(
+    "Inventory",
+    InventorySchema,
+);

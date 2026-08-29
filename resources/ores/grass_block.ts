@@ -5,6 +5,8 @@ export default {
     id: "grass_block",
     emoji: "1543277781939650691",
     biome: "plains",
-    value: 1,
-    xp: 1,
+    value: 3,
+    xp: 3,
+    chance: 30,
+    rarity: 1
 } satisfies Ore;
