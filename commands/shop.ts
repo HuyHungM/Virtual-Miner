@@ -60,7 +60,7 @@ export async function executeShop(
         .setContent(
             `### ${result.currentPickaxe
             ? client.appEmojis.get(result.currentPickaxe.emoji)
-            : "⛏"} Cửa hàng bán cúp`
+            : ""} Cửa hàng bán cúp`
         );
 
     const balanceComponent = new TextDisplayBuilder()
