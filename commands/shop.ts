@@ -10,6 +10,7 @@ import {
     SeparatorBuilder,
     SeparatorSpacingSize,
     type MessageActionRowComponentBuilder,
+    type ColorResolvable,
 } from "discord.js";
 
 import User from "../models/User";
@@ -52,7 +53,7 @@ export async function executeShop(
         );
     
     const containerComponent = new ContainerBuilder()
-        .setAccentColor(resolveColor(user.color as any));
+        .setAccentColor(resolveColor(user.color as ColorResolvable));
     
     // Title
     const titleComponent = new TextDisplayBuilder()
