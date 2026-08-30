@@ -63,7 +63,6 @@ async function executeMine(
         );
 
     // Error
-
     if (!result.success) {
         switch (result.reason) {
             case "RESOURCE_NOT_FOUND": {
@@ -144,7 +143,6 @@ async function executeMine(
     }
 
     // Ore content
-
     const oreLines =
         result.ores.map(
             ({
@@ -165,7 +163,6 @@ async function executeMine(
         );
 
     // Description
-
     const description: string[] = [
         oreLines.join("\n"),
         `✨ **XP: +${result.miningXp.toLocaleString()}**`,
@@ -211,7 +208,6 @@ async function executeMine(
             .setAccentColor(resolveColor(user.color as ColorResolvable))
 
             // Title
-
             .addTextDisplayComponents(
                 new TextDisplayBuilder()
                     .setContent(
@@ -227,7 +223,6 @@ async function executeMine(
             )
 
             // Ores + xp
-
             .addTextDisplayComponents(
                 new TextDisplayBuilder()
                     .setContent(
@@ -243,7 +238,6 @@ async function executeMine(
             )
 
             // Footer
-
             .addTextDisplayComponents(
                 new TextDisplayBuilder()
                     .setContent(
@@ -252,7 +246,6 @@ async function executeMine(
             )
 
             // Button
-
             .addActionRowComponents(
                 createButtons(result.pickaxe.emoji),
             );

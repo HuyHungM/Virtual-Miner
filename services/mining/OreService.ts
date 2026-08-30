@@ -61,7 +61,6 @@ export function rollOres(
     return result;
 }
 
-// Roll
 function rollSingleOre(
     ores: Ore[],
     fortune: number,

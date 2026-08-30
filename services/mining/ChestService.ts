@@ -10,7 +10,6 @@ interface CurvePoint {
 }
 
 // Config
-
 const MONEY_CURVE: CurvePoint[] = [
     {
         level: 1,
@@ -45,8 +44,6 @@ const MIN_REWARD_MULTIPLIER = 0.8;
 const MAX_REWARD_MULTIPLIER = 1.2;
 
 const MAX_CHEST_CHANCE = 100;
-
-// Chest chance
 
 function rollChestChance(
     chance: number,
@@ -173,8 +170,6 @@ function interpolateCurve(
     );
 }
 
-// Reward multi
-
 function rollRewardMultiplier(): number {
     return (
         MIN_REWARD_MULTIPLIER +
@@ -185,8 +180,6 @@ function rollRewardMultiplier(): number {
         )
     );
 }
-
-// Money
 
 function calculateMoneyReward(
     level: number,

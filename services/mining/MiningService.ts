@@ -92,7 +92,6 @@ export async function mine(
 ): Promise<MiningResult> {
 
     // Validate
-
     const validation =
         validateMining(
             client,
@@ -110,7 +109,6 @@ export async function mine(
     } = validation;
 
     // Cur level
-
     const currentLevel =
         Math.max(
             1,
@@ -118,12 +116,10 @@ export async function mine(
         );
 
     // Upgrade stats
-
     const stats =
         getUpgradeStats(user);
 
     // Get ores
-
     const ores =
         getBiomeOres(
             client,
@@ -138,14 +134,12 @@ export async function mine(
     }
 
     // Calc mining amount
-
     const miningAmount =
         calculateMiningAmount(
             stats.effective,
         );
 
     // Roll ores
-
     const minedOres =
         rollOres(
             ores,
@@ -161,7 +155,6 @@ export async function mine(
     }
 
     // Group ores
-
     const oreMap =
         new Map<
             string,
@@ -189,7 +182,6 @@ export async function mine(
     }
 
     // Calc XP
-
     const results:
         MiningOreResult[] = [];
 
@@ -217,7 +209,6 @@ export async function mine(
     }
 
     // Add ores
-
     await addItems(
         user.userId,
         results.map(
@@ -273,7 +264,6 @@ export async function mine(
     }
 
     // Total XP
-
     const totalXp =
         miningXp +
         (
@@ -283,7 +273,6 @@ export async function mine(
         );
 
     // Add XP + Level Up
-
     const levelUp =
         await addXp(
             user.userId,
@@ -291,7 +280,6 @@ export async function mine(
         );
 
     // Return
-
     return {
         success: true,
 
