@@ -1,53 +1,97 @@
-import History from '../../models/History';
-import type { ItemInput } from '../inventory/InventoryService';
+import type { ClientSession } from 'mongoose';
 
-export async function getHistory(userId: string) {
+import type { ItemInput } from '../../types/Item';
+
+import History from '../../models/History';
+
+export async function getHistory(userId: string, session?: ClientSession) {
     return History.findOne({
         userId,
-    });
+    }).session(session ?? null);
 }
 
-export async function createHistory(userId: string) {
-    return History.create({
-        userId,
-        items: [],
-    });
+export async function createHistory(userId: string, session?: ClientSession) {
+    return History.create(
+        [
+            {
+                userId,
+                items: [],
+            },
+        ],
+        { session },
+    ).then(([history]) => history);
 }
 
-export async function addHistoryItems(userId: string, items: ItemInput[]) {
-    if (items.length === 0) {
+export async function addMiningStats(
+    userId: string,
+    items: ItemInput[],
+    session?: ClientSession,
+) {
+    const validItems = items.filter((item) => item.quantity > 0);
+
+    if (validItems.length === 0) {
         return;
     }
 
-    const history = await History.findOneAndUpdate(
+    await History.updateOne(
         { userId },
         {
             $setOnInsert: {
                 userId,
+                items: [],
             },
         },
         {
-            returnDocument: 'after',
             upsert: true,
+            session,
         },
     );
 
-    for (const item of items) {
-        if (item.quantity <= 0) {
-            continue;
-        }
+    const quantities = new Map<string, number>();
 
-        const existing = history.items.find((i) => i.itemId === item.itemId);
-
-        if (existing) {
-            existing.quantity += item.quantity;
-        } else {
-            history.items.push({
-                itemId: item.itemId,
-                quantity: item.quantity,
-            });
-        }
+    for (const item of validItems) {
+        quantities.set(
+            item.itemId,
+            (quantities.get(item.itemId) ?? 0) + item.quantity,
+        );
     }
 
-    await history.save();
+    for (const [itemId, quantity] of quantities) {
+        const result = await History.updateOne(
+            {
+                userId,
+                'items.itemId': itemId,
+            },
+            {
+                $inc: {
+                    'items.$.quantity': quantity,
+                },
+            },
+            {
+                session,
+            },
+        );
+
+        if (result.matchedCount === 0) {
+            await History.updateOne(
+                {
+                    userId,
+                    'items.itemId': {
+                        $ne: itemId,
+                    },
+                },
+                {
+                    $push: {
+                        items: {
+                            itemId,
+                            quantity,
+                        },
+                    },
+                },
+                {
+                    session,
+                },
+            );
+        }
+    }
 }

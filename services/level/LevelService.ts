@@ -1,4 +1,5 @@
-import User from '../../models/User';
+import type { ClientSession } from 'mongoose';
+
 import { getUser } from '../user/UserService';
 
 export interface LevelUpResult {
@@ -29,8 +30,6 @@ export function getRequiredXp(level: number): number {
         return 200;
     }
 
-    // curve segment
-
     let start = XP_POINTS[0]!;
     let end = XP_POINTS[1]!;
 
@@ -47,8 +46,6 @@ export function getRequiredXp(level: number): number {
         end = point;
     }
 
-    // level 150
-
     if (level >= XP_POINTS[XP_POINTS.length - 1]!.level) {
         const last = XP_POINTS[XP_POINTS.length - 1]!;
 
@@ -56,8 +53,6 @@ export function getRequiredXp(level: number): number {
 
         return Math.floor(last.xp * growth);
     }
-
-    // Log interpolation
 
     const progress = (level - start.level) / (end.level - start.level);
 
@@ -94,12 +89,13 @@ export function calculateLevel(
 export async function addXp(
     userId: string,
     amount: number,
+    session?: ClientSession,
 ): Promise<LevelUpResult | null> {
     if (amount <= 0) {
         return null;
     }
 
-    const user = await getUser(userId);
+    const user = await getUser(userId, session);
 
     if (!user) {
         return null;
@@ -110,10 +106,11 @@ export async function addXp(
     const result = calculateLevel(user.level, user.xp + amount);
 
     user.level = result.level;
-
     user.xp = result.xp;
 
-    await user.save();
+    await user.save({
+        session,
+    });
 
     return {
         oldLevel,

@@ -1,12 +1,14 @@
+import type { ClientSession } from 'mongoose';
 import Inventory from '../../models/Inventory';
+import type { ItemInput } from '../../types/Item';
 
-export async function getInventory(userId: string) {
+export async function getInventory(userId: string, session?: ClientSession) {
     return Inventory.findOne({
         userId,
-    });
+    }).session(session ?? null);
 }
 
-export async function clearInventory(userId: string) {
+export async function clearInventory(userId: string, session?: ClientSession) {
     return Inventory.updateOne(
         { userId },
         {
@@ -14,63 +16,101 @@ export async function clearInventory(userId: string) {
                 items: [],
             },
         },
+        { session },
     );
 }
 
-export async function createInventory(userId: string) {
-    return Inventory.create({
-        userId,
-        items: [],
-    });
+export async function createInventory(userId: string, session?: ClientSession) {
+    return Inventory.create(
+        [
+            {
+                userId,
+                items: [],
+            },
+        ],
+        { session },
+    ).then(([inventory]) => inventory);
 }
 
-export interface ItemInput {
-    itemId: string;
-    quantity: number;
-}
+export async function addItems(
+    userId: string,
+    items: ItemInput[],
+    session?: ClientSession,
+) {
+    const validItems = items.filter((item) => item.quantity > 0);
 
-export async function addItems(userId: string, items: ItemInput[]) {
-    if (items.length === 0) {
+    if (validItems.length === 0) {
         return;
     }
 
-    const inventory = await Inventory.findOneAndUpdate(
+    await Inventory.updateOne(
         { userId },
         {
             $setOnInsert: {
                 userId,
+                items: [],
             },
         },
         {
-            returnDocument: 'after',
             upsert: true,
+            session,
         },
     );
 
-    for (const item of items) {
-        if (item.quantity <= 0) {
-            continue;
-        }
+    const quantities = new Map<string, number>();
 
-        const existing = inventory.items.find((i) => i.itemId === item.itemId);
-
-        if (existing) {
-            existing.quantity += item.quantity;
-        } else {
-            inventory.items.push({
-                itemId: item.itemId,
-                quantity: item.quantity,
-            });
-        }
+    for (const item of validItems) {
+        quantities.set(
+            item.itemId,
+            (quantities.get(item.itemId) ?? 0) + item.quantity,
+        );
     }
 
-    await inventory.save();
+    for (const [itemId, quantity] of quantities) {
+        const result = await Inventory.updateOne(
+            {
+                userId,
+                'items.itemId': itemId,
+            },
+            {
+                $inc: {
+                    'items.$.quantity': quantity,
+                },
+            },
+            {
+                session,
+            },
+        );
+
+        if (result.matchedCount === 0) {
+            await Inventory.updateOne(
+                {
+                    userId,
+                    'items.itemId': {
+                        $ne: itemId,
+                    },
+                },
+                {
+                    $push: {
+                        items: {
+                            itemId,
+                            quantity,
+                        },
+                    },
+                },
+                {
+                    session,
+                },
+            );
+        }
+    }
 }
 
 export async function removeItem(
     userId: string,
     itemId: string,
     quantity: number,
+    session?: ClientSession,
 ): Promise<boolean> {
     if (quantity <= 0) {
         return false;
@@ -93,6 +133,9 @@ export async function removeItem(
                 'items.$.quantity': -quantity,
             },
         },
+        {
+            session,
+        },
     );
 
     if (result.modifiedCount === 0) {
@@ -110,6 +153,9 @@ export async function removeItem(
                     quantity: 0,
                 },
             },
+        },
+        {
+            session,
         },
     );
 

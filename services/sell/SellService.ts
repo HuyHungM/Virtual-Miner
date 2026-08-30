@@ -5,7 +5,7 @@ import User from '../../models/User';
 import Inventory from '../../models/Inventory';
 
 import type { Ore } from '../../types/Ore';
-import { clearInventory } from '../inventory/InventoryService';
+import { clearInventory, getInventory } from '../inventory/InventoryService';
 import { updateBalance } from '../user/UserService';
 
 export interface SellResult {
@@ -22,16 +22,14 @@ export async function sellAll(
     const session = await mongoose.startSession();
 
     try {
-        let result: SellResult = {
+        const result: SellResult = {
             soldItems: 0,
             totalQuantity: 0,
             totalValue: 0,
         };
 
         await session.withTransaction(async () => {
-            const inventory = await Inventory.findOne({
-                userId,
-            }).session(session);
+            const inventory = await getInventory(userId, session);
 
             if (!inventory || inventory.items.length === 0) {
                 return;
@@ -64,9 +62,9 @@ export async function sellAll(
                 result.totalValue * (1 + sellPriceMultiplier),
             );
 
-            await updateBalance(userId, result.totalValue);
+            await updateBalance(userId, result.totalValue, session);
 
-            await clearInventory(userId);
+            await clearInventory(userId, session);
         });
 
         return result;

@@ -1,28 +1,24 @@
+import mongoose from 'mongoose';
 import type { Client } from 'discord.js';
 
 import { validateMining } from './MiningValidator';
-
 import { getBiomeOres, rollOres } from './OreService';
-
 import { calculateMiningAmount } from './EffectiveService';
-
 import { calculateOreXp } from './XpService';
-
 import { rollChest } from './ChestService';
-
 import { getUpgradeStats } from '../upgrade/UpgradeService';
 
 import { addItems } from '../inventory/InventoryService';
 
-import { addXp, type LevelUpResult } from '../level/LevelService';
+import { addMiningStats } from '../history/HistoryService';
 
-import User from '../../models/User';
+import { addXp, type LevelUpResult } from '../level/LevelService';
 
 import type { Ore } from '../../types/Ore';
 import type { Biome } from '../../types/Biome';
 import type { Pickaxe } from '../../types/Pickaxe';
 import type { ChestResult } from './ChestService';
-import { addHistoryItems } from '../history/HistoryService';
+import { updateBalance } from '../user/UserService';
 
 export type MiningFailure =
     | {
@@ -76,7 +72,7 @@ export async function mine(client: Client, user: any): Promise<MiningResult> {
 
     const { biome, pickaxe } = validation;
 
-    // Cur level
+    // Current level
     const currentLevel = Math.max(1, user.level ?? 1);
 
     // Upgrade stats
@@ -92,7 +88,7 @@ export async function mine(client: Client, user: any): Promise<MiningResult> {
         };
     }
 
-    // Calc mining amount
+    // Mining amount
     const miningAmount = calculateMiningAmount(stats.effective);
 
     // Roll ores
@@ -127,7 +123,7 @@ export async function mine(client: Client, user: any): Promise<MiningResult> {
         }
     }
 
-    // Calc XP
+    // Calculate XP
     const results: MiningOreResult[] = [];
 
     let miningXp = 0;
@@ -144,70 +140,73 @@ export async function mine(client: Client, user: any): Promise<MiningResult> {
         miningXp += xp;
     }
 
-    // Add ores
-    await addItems(
-        user.userId,
-        results.map(({ ore, amount }) => ({
-            itemId: ore.id,
-            quantity: amount,
-        })),
-    );
-
-    // Add history
-
-    await addHistoryItems(
-        user.id,
-        results.map(({ ore, amount }) => ({
-            itemId: ore.id,
-            quantity: amount,
-        })),
-    );
-
     // Chest
-    // Chest dùng level TRƯỚC khi nhận XP.
-
     const chest = rollChest(
         stats.chest_chance,
         stats.chest_quality,
         currentLevel,
     );
 
-    // Chest money
-
-    if (chest.opened && chest.money > 0) {
-        await User.updateOne(
-            {
-                userId: user.userId,
-            },
-            {
-                $inc: {
-                    balance: chest.money,
-                },
-            },
-        );
-    }
-
-    // Total XP
     const totalXp = miningXp + (chest.opened ? chest.xp : 0);
 
-    // Add XP + Level Up
-    const levelUp = await addXp(user.userId, totalXp);
+    /*
+     * ==========================================
+     * DATABASE TRANSACTION
+     * ==========================================
+     */
 
-    // Return
-    return {
-        success: true,
+    const session = await mongoose.startSession();
 
-        biome,
-        pickaxe,
+    let levelUp: LevelUpResult | null = null;
 
-        ores: results,
+    try {
+        await session.withTransaction(async () => {
+            // Add ores
+            await addItems(
+                user.userId,
+                results.map(({ ore, amount }) => ({
+                    itemId: ore.id,
+                    quantity: amount,
+                })),
+                session,
+            );
 
-        miningXp,
+            //Add history
+            await addMiningStats(
+                user.userId,
+                results.map(({ ore, amount }) => ({
+                    itemId: ore.id,
+                    quantity: amount,
+                })),
+                session,
+            );
 
-        chest,
+            // Chest money
+            if (chest.opened && chest.money > 0) {
+                await updateBalance(user.userId, chest.money, session);
+            }
 
-        totalXp,
+            // Xp + level up
+            levelUp = await addXp(user.userId, totalXp, session);
+        });
 
-        levelUp,
-    };
+        return {
+            success: true,
+
+            biome,
+            pickaxe,
+
+            ores: results,
+
+            miningXp,
+
+            chest,
+
+            totalXp,
+
+            levelUp,
+        };
+    } finally {
+        await session.endSession();
+    }
 }
