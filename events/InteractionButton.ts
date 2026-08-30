@@ -31,6 +31,20 @@ export default async (client: Client) => {
             return;
         }
 
+        if (interaction.customId === "menu:back") {
+            const back = client.commands.get("menu");
+            if(!back) return;
+            await back.run(client, interaction);
+            return;
+        }
+
+        if (interaction.customId === "menu:shop") {
+            const shop = client.commands.get("shop");
+            if(!shop) return;
+            await shop.run(client, interaction);
+            return;
+        }
+
         if (interaction.customId.startsWith('shop:prev:')) {
             const page = Number(interaction.customId.split(':')[2]);
 
