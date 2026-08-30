@@ -112,7 +112,7 @@ export async function executeShop(
     const navigation =
         new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
             new ButtonBuilder()
-                .setCustomId('shop:menu')
+                .setCustomId('menu:back')
                 .setLabel(`Quay lại`)
                 .setStyle(ButtonStyle.Secondary),
 
