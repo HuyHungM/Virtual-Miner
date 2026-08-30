@@ -1,30 +1,30 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from 'mongoose';
 
 const HistorySchema = new Schema(
     {
         userId: {
             type: String,
             required: true,
-            unique: true
+            unique: true,
         },
         items: [
             {
                 itemId: {
                     type: String,
-                    required: true
+                    required: true,
                 },
                 quantity: {
                     type: String,
                     required: true,
                     default: 0,
                     min: 0,
-                }
-            }
-        ]
+                },
+            },
+        ],
     },
     {
-        timestamps: true
-    }
-)
+        timestamps: true,
+    },
+);
 
-export default mongoose.model("History", HistorySchema);
+export default mongoose.model('History', HistorySchema);

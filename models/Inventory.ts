@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from 'mongoose';
 
 const InventorySchema = new Schema(
     {
@@ -30,7 +30,4 @@ const InventorySchema = new Schema(
     },
 );
 
-export default mongoose.model(
-    "Inventory",
-    InventorySchema,
-);
+export default mongoose.model('Inventory', InventorySchema);

@@ -1,13 +1,13 @@
-import type { Pickaxe } from "../../types/Pickaxe";
+import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: "Cúp đá đỏ",
-    id: "redstone_pickaxe",
-    biomes: ["plains"],
+    name: 'Cúp đá đỏ',
+    id: 'redstone_pickaxe',
+    biomes: ['plains'],
     price: 250000,
     unlock_level: 50,
-    description: "Hiện đại hại điện. Một kỷ nguyên mới.",
-    emoji: "1543193249622269982",
+    description: 'Hiện đại hại điện. Một kỷ nguyên mới.',
+    emoji: '1543193249622269982',
     buff: {
         effective: 0.6,
         fortune: 0.35,
@@ -15,5 +15,5 @@ export default {
         chest_quality: 0.25,
         xp_multiplier: 0.15,
         sell_price: 0,
-    }
-} satisfies Pickaxe
+    },
+} satisfies Pickaxe;

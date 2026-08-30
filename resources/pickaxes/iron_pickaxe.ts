@@ -1,13 +1,13 @@
-import type { Pickaxe } from "../../types/Pickaxe";
+import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: "Cúp sắt",
-    id: "iron_pickaxe",
-    biomes: ["plains"],
+    name: 'Cúp sắt',
+    id: 'iron_pickaxe',
+    biomes: ['plains'],
     price: 100000,
     unlock_level: 1,
-    description: "Thời kì đồ sắt. Tăng kinh nghiệm nhận được.",
-    emoji: "1543192470802931722",
+    description: 'Thời kì đồ sắt. Tăng kinh nghiệm nhận được.',
+    emoji: '1543192470802931722',
     buff: {
         effective: 0.5,
         fortune: 0.3,
@@ -15,5 +15,5 @@ export default {
         chest_quality: 0.2,
         xp_multiplier: 0.1,
         sell_price: 0,
-    }
-} satisfies Pickaxe
+    },
+} satisfies Pickaxe;

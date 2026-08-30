@@ -1,11 +1,11 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from 'mongoose';
 
 const UserSchema = new Schema(
     {
         userId: {
             type: String,
             required: true,
-            unique: true
+            unique: true,
         },
         level: {
             type: Number,
@@ -25,26 +25,26 @@ const UserSchema = new Schema(
         color: {
             type: String,
             required: true,
-            default: "#00a6ff"
+            default: '#00a6ff',
         },
         pickaxe: {
             type: String,
             required: true,
-            default: "wooden_pickaxe",
+            default: 'wooden_pickaxe',
         },
         biome: {
             type: String,
             required: true,
-            default: "plains"
+            default: 'plains',
         },
         unlocked_pickaxes: {
             type: [String],
-            default: ["wooden_pickaxe"]
+            default: ['wooden_pickaxe'],
         },
 
         unlocked_biomes: {
             type: [String],
-            default: ["plains"]
+            default: ['plains'],
         },
         upgrades: {
             effective: {
@@ -77,11 +77,11 @@ const UserSchema = new Schema(
                 default: 0,
                 min: 0,
             },
-        }
+        },
     },
     {
-        timestamps: true
-    }
-)
+        timestamps: true,
+    },
+);
 
-export default mongoose.model("User", UserSchema);
+export default mongoose.model('User', UserSchema);

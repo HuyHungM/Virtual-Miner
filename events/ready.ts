@@ -1,8 +1,8 @@
-import { Collection, Events } from "discord.js"
+import { Collection, Events } from 'discord.js';
 
-export default async(client : any) => {
+export default async (client: any) => {
     client.once(Events.ClientReady, async () => {
-        console.log(`${client.user.username} đã online!`)
+        console.log(`${client.user.username} đã online!`);
         const emojis = await client.application!.emojis.fetch();
 
         client.appEmojis = new Collection();
@@ -12,5 +12,5 @@ export default async(client : any) => {
         }
 
         console.log(`[EMOJI] Đã tải ${client.appEmojis.size} emoji`);
-    })
-}
+    });
+};

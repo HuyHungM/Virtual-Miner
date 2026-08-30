@@ -9,50 +9,24 @@ export interface UpgradeStats {
 
 const BONUS_PER_LEVEL = 0.25;
 
-export function getUpgradeMultiplier(
-    level: number,
-): number {
-    return (
-        1 +
-        Math.max(0, level) *
-        BONUS_PER_LEVEL
-    );
+export function getUpgradeMultiplier(level: number): number {
+    return 1 + Math.max(0, level) * BONUS_PER_LEVEL;
 }
 
-export function getUpgradeStats(
-    user: any,
-): UpgradeStats {
+export function getUpgradeStats(user: any): UpgradeStats {
     const upgrades = user.upgrades;
 
     return {
-        effective:
-            getUpgradeMultiplier(
-                upgrades.effective,
-            ),
+        effective: getUpgradeMultiplier(upgrades.effective),
 
-        fortune:
-            getUpgradeMultiplier(
-                upgrades.fortune,
-            ),
+        fortune: getUpgradeMultiplier(upgrades.fortune),
 
-        sell_price:
-            getUpgradeMultiplier(
-                upgrades.sell_price,
-            ),
+        sell_price: getUpgradeMultiplier(upgrades.sell_price),
 
-        xp_multiplier:
-            getUpgradeMultiplier(
-                upgrades.xp_multiplier,
-            ),
+        xp_multiplier: getUpgradeMultiplier(upgrades.xp_multiplier),
 
-        chest_chance:
-            getUpgradeMultiplier(
-                upgrades.chest_chance,
-            ),
+        chest_chance: getUpgradeMultiplier(upgrades.chest_chance),
 
-        chest_quality:
-            getUpgradeMultiplier(
-                upgrades.chest_quality,
-            ),
+        chest_quality: getUpgradeMultiplier(upgrades.chest_quality),
     };
 }

@@ -45,21 +45,9 @@ const MAX_REWARD_MULTIPLIER = 1.2;
 
 const MAX_CHEST_CHANCE = 100;
 
-function rollChestChance(
-    chance: number,
-): boolean {
-    const safeChance =
-        Math.max(
-            0,
-            Math.min(
-                MAX_CHEST_CHANCE,
-                chance,
-            ),
-        );
-    return (
-        Math.random() * 100 <
-        safeChance
-    );
+function rollChestChance(chance: number): boolean {
+    const safeChance = Math.max(0, Math.min(MAX_CHEST_CHANCE, chance));
+    return Math.random() * 100 < safeChance;
 }
 
 /**
@@ -73,51 +61,25 @@ function rollChestChance(
  * Lv10  = 1,200
  * Lv150 = 300,000
  */
-function interpolateCurve(
-    level: number,
-    points: CurvePoint[],
-): number {
-    const safeLevel =
-        Math.max(
-            1,
-            level,
-        );
+function interpolateCurve(level: number, points: CurvePoint[]): number {
+    const safeLevel = Math.max(1, level);
 
     if (points.length === 0) {
         return 0;
     }
 
-    if (
-        safeLevel <=
-        points[0]!.level
-    ) {
+    if (safeLevel <= points[0]!.level) {
         return points[0]!.value;
     }
 
-    for (
-        let i = 1;
-        i < points.length;
-        i++
-    ) {
-        const start =
-            points[i - 1]!;
+    for (let i = 1; i < points.length; i++) {
+        const start = points[i - 1]!;
 
-        const end =
-            points[i]!;
+        const end = points[i]!;
 
-        if (
-            safeLevel <=
-            end.level
-        ) {
+        if (safeLevel <= end.level) {
             const progress =
-                (
-                    safeLevel -
-                    start.level
-                ) /
-                (
-                    end.level -
-                    start.level
-                );
+                (safeLevel - start.level) / (end.level - start.level);
 
             /*
              * value =
@@ -126,117 +88,49 @@ function interpolateCurve(
              */
 
             const value =
-                start.value *
-                Math.pow(
-                    end.value /
-                    start.value,
-                    progress,
-                );
+                start.value * Math.pow(end.value / start.value, progress);
 
-            return Math.floor(
-                value,
-            );
+            return Math.floor(value);
         }
     }
 
-    const last =
-        points[
-            points.length - 1
-        ]!;
+    const last = points[points.length - 1]!;
 
-    const previous =
-        points[
-            points.length - 2
-        ]!;
+    const previous = points[points.length - 2]!;
 
-    const growth =
-        Math.pow(
-            last.value /
-            previous.value,
-            1 /
-            (
-                last.level -
-                previous.level
-            ),
-        );
-
-    return Math.floor(
-        last.value *
-        Math.pow(
-            growth,
-            safeLevel -
-            last.level,
-        ),
+    const growth = Math.pow(
+        last.value / previous.value,
+        1 / (last.level - previous.level),
     );
+
+    return Math.floor(last.value * Math.pow(growth, safeLevel - last.level));
 }
 
 function rollRewardMultiplier(): number {
     return (
         MIN_REWARD_MULTIPLIER +
-        Math.random() *
-        (
-            MAX_REWARD_MULTIPLIER -
-            MIN_REWARD_MULTIPLIER
-        )
+        Math.random() * (MAX_REWARD_MULTIPLIER - MIN_REWARD_MULTIPLIER)
     );
 }
 
-function calculateMoneyReward(
-    level: number,
-    quality: number,
-): number {
-    const base =
-        interpolateCurve(
-            level,
-            MONEY_CURVE,
-        );
+function calculateMoneyReward(level: number, quality: number): number {
+    const base = interpolateCurve(level, MONEY_CURVE);
 
-    const qualityMultiplier =
-        Math.max(
-            1,
-            quality,
-        );
+    const qualityMultiplier = Math.max(1, quality);
 
-    const randomMultiplier =
-        rollRewardMultiplier();
+    const randomMultiplier = rollRewardMultiplier();
 
-    return Math.max(
-        1,
-        Math.floor(
-            base *
-            qualityMultiplier *
-            randomMultiplier,
-        ),
-    );
+    return Math.max(1, Math.floor(base * qualityMultiplier * randomMultiplier));
 }
 
-function calculateXpReward(
-    level: number,
-    quality: number,
-): number {
-    const base =
-        interpolateCurve(
-            level,
-            XP_CURVE,
-        );
+function calculateXpReward(level: number, quality: number): number {
+    const base = interpolateCurve(level, XP_CURVE);
 
-    const qualityMultiplier =
-        Math.max(
-            1,
-            quality,
-        );
+    const qualityMultiplier = Math.max(1, quality);
 
-    const randomMultiplier =
-        rollRewardMultiplier();
+    const randomMultiplier = rollRewardMultiplier();
 
-    return Math.max(
-        1,
-        Math.floor(
-            base *
-            qualityMultiplier *
-            randomMultiplier,
-        ),
-    );
+    return Math.max(1, Math.floor(base * qualityMultiplier * randomMultiplier));
 }
 
 // main
@@ -246,11 +140,7 @@ export function rollChest(
     chestQuality: number,
     level: number,
 ): ChestResult {
-
-    const opened =
-        rollChestChance(
-            chestChance,
-        );
+    const opened = rollChestChance(chestChance);
 
     if (!opened) {
         return {
@@ -260,17 +150,9 @@ export function rollChest(
         };
     }
 
-    const money =
-        calculateMoneyReward(
-            level,
-            chestQuality,
-        );
+    const money = calculateMoneyReward(level, chestQuality);
 
-    const xp =
-        calculateXpReward(
-            level,
-            chestQuality,
-        );
+    const xp = calculateXpReward(level, chestQuality);
 
     return {
         opened: true,

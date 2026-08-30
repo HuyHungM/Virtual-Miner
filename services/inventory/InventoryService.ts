@@ -1,16 +1,12 @@
-import Inventory from "../../models/Inventory";
+import Inventory from '../../models/Inventory';
 
-export async function getInventory(
-    userId: string,
-) {
+export async function getInventory(userId: string) {
     return Inventory.findOne({
         userId,
     });
 }
 
-export async function clearInventory(
-    userId: string,
-) {
+export async function clearInventory(userId: string) {
     return Inventory.updateOne(
         { userId },
         {
@@ -21,9 +17,7 @@ export async function clearInventory(
     );
 }
 
-export async function createInventory(
-    userId: string,
-) {
+export async function createInventory(userId: string) {
     return Inventory.create({
         userId,
         items: [],
@@ -35,43 +29,33 @@ export interface ItemInput {
     quantity: number;
 }
 
-export async function addItems(
-    userId: string,
-    items: ItemInput[],
-) {
+export async function addItems(userId: string, items: ItemInput[]) {
     if (items.length === 0) {
         return;
     }
 
-    const inventory =
-        await Inventory.findOneAndUpdate(
-            { userId },
-            {
-                $setOnInsert: {
-                    userId,
-                },
+    const inventory = await Inventory.findOneAndUpdate(
+        { userId },
+        {
+            $setOnInsert: {
+                userId,
             },
-            {
-                returnDocument: "after",
-                upsert: true,
-            },
-        );
+        },
+        {
+            returnDocument: 'after',
+            upsert: true,
+        },
+    );
 
     for (const item of items) {
         if (item.quantity <= 0) {
             continue;
         }
 
-        const existing =
-            inventory.items.find(
-                i =>
-                    i.itemId ===
-                    item.itemId,
-            );
+        const existing = inventory.items.find((i) => i.itemId === item.itemId);
 
         if (existing) {
-            existing.quantity +=
-                item.quantity;
+            existing.quantity += item.quantity;
         } else {
             inventory.items.push({
                 itemId: item.itemId,
@@ -92,25 +76,24 @@ export async function removeItem(
         return false;
     }
 
-    const result =
-        await Inventory.updateOne(
-            {
-                userId,
-                items: {
-                    $elemMatch: {
-                        itemId,
-                        quantity: {
-                            $gte: quantity,
-                        },
+    const result = await Inventory.updateOne(
+        {
+            userId,
+            items: {
+                $elemMatch: {
+                    itemId,
+                    quantity: {
+                        $gte: quantity,
                     },
                 },
             },
-            {
-                $inc: {
-                    "items.$.quantity": -quantity,
-                },
+        },
+        {
+            $inc: {
+                'items.$.quantity': -quantity,
             },
-        );
+        },
+    );
 
     if (result.modifiedCount === 0) {
         return false;
