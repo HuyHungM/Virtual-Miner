@@ -6,7 +6,7 @@ export default {
     biomes: ["plains"],
     price: 250000,
     unlock_level: 50,
-    description: "Hiện đại hại điện",
+    description: "Hiện đại hại điện. Một kỷ nguyên mới.",
     emoji: "1543193249622269982",
     buff: {
         effective: 0.6,

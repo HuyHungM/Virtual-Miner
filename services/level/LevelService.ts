@@ -1,4 +1,5 @@
 import User from "../../models/User";
+import { getUser } from "../user/UserService";
 
 export interface LevelUpResult {
     oldLevel: number;
@@ -146,9 +147,7 @@ export async function addXp(
     }
 
     const user =
-        await User.findOne({
-            userId,
-        });
+        await getUser(userId);
 
     if (!user) {
         return null;

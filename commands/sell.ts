@@ -7,11 +7,11 @@ import {
     type ColorResolvable,
 } from "discord.js";
 
-import User from "../models/User";
 import type { Command } from "../types/Command";
 
 import { sellAll } from "../services/sell/SellService";
 import { getUpgradeStats } from "../services/upgrade/UpgradeService";
+import { getUser } from "../services/user/UserService";
 
 function createButtons() {
     return new ActionRowBuilder<ButtonBuilder>()
@@ -31,9 +31,7 @@ export default {
     description: "Bán toàn bộ khoáng sản",
 
     run: async (client, interaction) => {
-        const user = await User.findOne({
-            userId: interaction.user.id,
-        });
+        const user = await getUser(interaction.user.id);
 
         if (!user) {
             await interaction.reply({
@@ -70,7 +68,7 @@ export default {
         ) {
             await interaction.reply({
                 content:
-                    "🎒 Kho đồ đang trống, có gì đâu mà bán.",
+                    "Kho đồ đang trống, có gì đâu mà bán.",
                 flags: MessageFlags.Ephemeral,
             });
 

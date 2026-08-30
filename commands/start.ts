@@ -2,6 +2,7 @@ import { MessageFlags } from "discord.js";
 import type { Command } from "../types/Command"
 import { createUser, getUser } from "../services/user/UserService";
 import { createInventory } from "../services/inventory/InventoryService";
+import { createHistory } from "../services/history/HistoryService";
 
 export default {
     name: "start",
@@ -21,9 +22,7 @@ export default {
         // Create info
         await createUser(userId);
         await createInventory(userId);
-        // await History.create({
-        //     userId
-        // }) // later
+        await createHistory(userId);
 
         await interaction.reply({
             content: "Đã tạo tài khoản thành công!\nChúc bạn may mắn trên con đường trở thành vua cày cuốc :)"

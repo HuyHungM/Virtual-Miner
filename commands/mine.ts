@@ -2,54 +2,55 @@ import {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
-    EmbedBuilder,
+    Client,
+    ContainerBuilder,
     MessageFlags,
+    resolveColor,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
     type ColorResolvable,
 } from "discord.js";
 
-import User from "../models/User";
 import type { Command } from "../types/Command";
 
 import { mine } from "../services/mining/MiningService";
+import { getUser } from "../services/user/UserService";
 
-function createMiningButtons() {
+function createButtons(pickaxeId: string) {
     return new ActionRowBuilder<ButtonBuilder>()
         .addComponents(
             new ButtonBuilder()
                 .setCustomId("mine:again")
                 .setLabel("Đào tiếp")
-                .setEmoji("⛏️")
-                .setStyle(
-                    ButtonStyle.Primary,
-                ),
+                .setEmoji(pickaxeId)
+                .setStyle(ButtonStyle.Primary),
 
             new ButtonBuilder()
                 .setCustomId("mine:sell")
-                .setLabel("Bán tất cả")
-                .setEmoji("💰")
-                .setStyle(
-                    ButtonStyle.Success,
-                ),
+                .setLabel("Bán")
+                .setStyle(ButtonStyle.Primary),
+
+            new ButtonBuilder()
+                .setCustomId("menu:back")
+                .setLabel("Quay lại")
+                .setStyle(ButtonStyle.Secondary)
         );
 }
 
 async function executeMine(
-    client: any,
+    client: Client,
     interaction: any,
 ) {
     const user =
-        await User.findOne({
-            userId:
-                interaction.user.id,
-        });
+        await getUser(interaction.user.id);
 
     if (!user) {
         await interaction.reply({
             content:
                 "Bạn chưa tạo tài khoản.\n" +
                 "`/start` để bắt đầu hành trình cày cuốc của bạn.",
-            flags:
-                MessageFlags.Ephemeral,
+            flags: MessageFlags.Ephemeral,
         });
 
         return;
@@ -61,16 +62,15 @@ async function executeMine(
             user,
         );
 
+    // Error
+
     if (!result.success) {
-        switch (
-            result.reason
-        ) {
+        switch (result.reason) {
             case "RESOURCE_NOT_FOUND": {
                 await interaction.reply({
                     content:
                         "Đã xảy ra lỗi khi tải tài nguyên.",
-                    flags:
-                        MessageFlags.Ephemeral,
+                    flags: MessageFlags.Ephemeral,
                 });
 
                 return;
@@ -89,29 +89,41 @@ async function executeMine(
                         )
                         : "";
 
-                const embed =
-                    new EmbedBuilder()
-                        .setColor(
-                            user.color as ColorResolvable,
+                const container =
+                    new ContainerBuilder()
+                        .setAccentColor(resolveColor(user.color as ColorResolvable))
+
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent(
+                                    "### ⛏️ Không thể đào",
+                                ),
                         )
-                        .setTitle(
-                            "⛏️ Không thể đào",
+
+                        .addSeparatorComponents(
+                            new SeparatorBuilder()
+                                .setSpacing(
+                                    SeparatorSpacingSize.Small,
+                                ),
                         )
-                        .setDescription(
-                            [
-                                "Cây cúp của bạn không đủ mạnh để đào biome này.",
-                                "",
-                                `Yêu cầu tối thiểu: ${emoji} **${
-                                    minimumPickaxe?.name ??
-                                    "Không xác định"
-                                }**`,
-                            ].join("\n"),
+
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder()
+                                .setContent(
+                                    [
+                                        "Cây cúp của bạn không đủ mạnh để đào biome này.",
+                                        "",
+                                        `**Yêu cầu tối thiểu:** ${emoji} **${
+                                            minimumPickaxe?.name ??
+                                            "Không xác định"
+                                        }**`,
+                                    ].join("\n"),
+                                ),
                         );
 
                 await interaction.reply({
-                    embeds: [
-                        embed,
-                    ],
+                    components: [container],
+                    flags: MessageFlags.IsComponentsV2,
                 });
 
                 return;
@@ -121,8 +133,7 @@ async function executeMine(
                 await interaction.reply({
                     content:
                         "Biome này hiện chưa có quặng.",
-                    flags:
-                        MessageFlags.Ephemeral,
+                    flags: MessageFlags.Ephemeral,
                 });
 
                 return;
@@ -131,6 +142,8 @@ async function executeMine(
 
         return;
     }
+
+    // Ore content
 
     const oreLines =
         result.ores.map(
@@ -151,9 +164,11 @@ async function executeMine(
             },
         );
 
+    // Description
+
     const description: string[] = [
         oreLines.join("\n"),
-        `✨ **Mining XP: +${result.miningXp.toLocaleString()}**`,
+        `✨ **XP: +${result.miningXp.toLocaleString()}**`,
     ];
 
     if (result.chest.opened) {
@@ -191,50 +206,69 @@ async function executeMine(
         );
     }
 
-    const embed =
-        new EmbedBuilder()
-            .setColor(
-                user.color as ColorResolvable,
-            )
-            .setTitle(
-                "⛏️ Khai thác thành công",
-            )
-            .setDescription(
-                description.join(
-                    "\n\n",
-                ),
-            )
-            .setFooter({
-                text:
-                    `${result.biome.name} • ` +
-                    `${result.pickaxe.name}`,
-            });
+    const container =
+        new ContainerBuilder()
+            .setAccentColor(resolveColor(user.color as ColorResolvable))
 
-    const buttons =
-        createMiningButtons();
+            // Title
 
-    if (
-        interaction.isButton()
-    ) {
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent(
+                        `### ${result.pickaxe ? client.appEmojis.get(result.pickaxe.emoji) : ""} Khai thác thành công`,
+                    ),
+            )
+
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setSpacing(
+                        SeparatorSpacingSize.Small,
+                    ),
+            )
+
+            // Ores + xp
+
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent(
+                        description.join("\n\n"),
+                    ),
+            )
+
+            .addSeparatorComponents(
+                new SeparatorBuilder()
+                    .setSpacing(
+                        SeparatorSpacingSize.Small,
+                    ),
+            )
+
+            // Footer
+
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent(
+                        `*${result.biome.name} • ${result.pickaxe.name}*`,
+                    ),
+            )
+
+            // Button
+
+            .addActionRowComponents(
+                createButtons(result.pickaxe.emoji),
+            );
+
+    if (interaction.isButton()) {
         await interaction.update({
-            embeds: [
-                embed,
-            ],
-            components: [
-                buttons,
-            ],
+            components: [container],
+            flags: MessageFlags.IsComponentsV2,
         });
 
         return;
     }
 
     await interaction.reply({
-        embeds: [
-            embed,
-        ],
-        components: [
-            buttons,
-        ],
+        components: [container],
+        flags: MessageFlags.IsComponentsV2,
     });
 }
 

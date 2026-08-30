@@ -6,8 +6,8 @@ export default {
     biomes: ["plains"],
     price: 5000,
     unlock_level: 1,
-    description: "Cứng hơn một chút rồi",
-    emoji: "copper_pickaxe",
+    description: "Cứng hơn một chút rồi. Tăng một chút gia tài.",
+    emoji: "1543192473273106472",
     buff: {
         effective: 0.3,
         fortune: 0.2,

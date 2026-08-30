@@ -5,6 +5,8 @@ import User from "../../models/User";
 import Inventory from "../../models/Inventory";
 
 import type { Ore } from "../../types/Ore";
+import { clearInventory } from "../inventory/InventoryService";
+import { updateBalance } from "../user/UserService";
 
 export interface SellResult {
     soldItems: number;
@@ -74,26 +76,9 @@ export async function sellAll(
                         (1 + sellPriceMultiplier),
                     );
 
-                await User.updateOne(
-                    { userId },
-                    {
-                        $inc: {
-                            balance:
-                                result.totalValue,
-                        },
-                    },
-                    { session },
-                );
+                await updateBalance(userId, result.totalValue)
 
-                await Inventory.updateOne(
-                    { userId },
-                    {
-                        $set: {
-                            items: [],
-                        },
-                    },
-                    { session },
-                );
+                await clearInventory(userId);
             },
         );
 

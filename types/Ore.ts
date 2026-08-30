@@ -2,15 +2,9 @@ export interface Ore {
     id: string;
     name: string;
     emoji: string;
-
     biome: string;
-
     value: number;
     xp: number;
-
-    /**
-     * Base chance (%)
-     */
     chance: number;
 
     /**

@@ -1,17 +1,9 @@
 import {
     Events,
+    MessageFlags,
     type Client,
 } from "discord.js";
-
-import User from "../models/User";
-
-import {
-    sellAll,
-} from "../services/sell/SellService";
-
-import {
-    getUpgradeStats,
-} from "../services/upgrade/UpgradeService";
+import { executeShop } from "../commands/shop";
 
 export default async (
     client: Client,
@@ -63,6 +55,92 @@ export default async (
                     client,
                     interaction,
                 );
+
+                return;
+            }
+
+            if (
+                interaction.customId.startsWith(
+                    "shop:prev:",
+                )
+            ) {
+                const page =
+                    Number(
+                        interaction.customId.split(
+                            ":",
+                        )[2],
+                    );
+
+                await executeShop(
+                    client,
+                    interaction,
+                    page - 1,
+                );
+
+                return;
+            }
+
+            if (
+                interaction.customId.startsWith(
+                    "shop:next:",
+                )
+            ) {
+                const page =
+                    Number(
+                        interaction.customId.split(
+                            ":",
+                        )[2],
+                    );
+
+                await executeShop(
+                    client,
+                    interaction,
+                    page + 1,
+                );
+
+                return;
+            }
+
+            if (
+                interaction.customId.startsWith(
+                    "shop:select:",
+                )
+            ) {
+                const pickaxeId =
+                    interaction.customId.split(
+                        ":",
+                    )[2];
+
+                if (!pickaxeId) {
+                    await interaction.reply({
+                        content:
+                            "Không tìm thấy cây cúp này.",
+                        flags: MessageFlags.Ephemeral
+                    });
+
+                    return;
+                }
+
+                const pickaxe =
+                    client.resources.pickaxes.get(
+                        pickaxeId,
+                    );
+
+                if (!pickaxe) {
+                    await interaction.reply({
+                        content:
+                            "Không tìm thấy cây cúp này.",
+                        flags: MessageFlags.Ephemeral
+                    });
+
+                    return;
+                }
+
+                await interaction.reply({
+                    content:
+                        `⛏️ Bạn đã chọn **${pickaxe.name}**.`,
+                    flags: MessageFlags.Ephemeral
+                });
 
                 return;
             }
