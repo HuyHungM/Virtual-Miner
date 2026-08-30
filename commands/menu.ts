@@ -5,12 +5,12 @@ import { getInventory } from "../services/inventory/InventoryService";
 import { getRequiredXp } from "../services/level/LevelService";
 import { getUpgradeStats } from "../services/upgrade/UpgradeService";
 
-function actionRow() {
+function actionRow(pEmoji : string) {
     return new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
             .setCustomId("mine:again")
             .setLabel("Đi đào")
-            .setEmoji("⛏️")
+            .setEmoji(pEmoji)
             .setStyle(ButtonStyle.Primary),
         new ButtonBuilder()
             .setCustomId("mine:sell")
@@ -131,7 +131,7 @@ Biome hiện tại: ${bEmoji} **${biome.name}**
         )
         
         // Thêm nút
-        .addActionRowComponents(actionRow())
+        .addActionRowComponents(actionRow(pickaxe.emoji))
 
     if (interaction.isButton()) {
         await interaction.update({
