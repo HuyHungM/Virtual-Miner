@@ -25,6 +25,7 @@ import {
     EMOJI_XP,
     EMOJI_PICKAXE,
     EMOJI_GLOBE,
+    EMOJI_GEM,
 } from '../services/emoji/EmojiService';
 
 async function resolveTargetUserId(
@@ -93,11 +94,11 @@ function buildHeader(
     const biome = client.resources.biomes.get(target.biome);
 
     const xpRequired = getRequiredXp(target.level);
-
     return [
         `> **Hồ sơ của ${username}**`,
         '',
         `${getEmoji(client, EMOJI_MONEY)} Số dư: **$${target.balance.toLocaleString()}**`,
+        `${getEmoji(client, EMOJI_GEM)} Gem: **${target.gems.toLocaleString()}**`,
         `${getEmoji(client, EMOJI_XP)} Lv.**${target.level}** – ${target.xp.toLocaleString()}/${xpRequired.toLocaleString()} XP`,
         `${getEmoji(client, EMOJI_PICKAXE)} Cúp: ${getEmoji(client, pickaxe?.emoji ?? '')} ${pickaxe?.name ?? 'Không xác định'}`,
         `${getEmoji(client, EMOJI_GLOBE)} Biome: ${getEmoji(client, biome?.emoji ?? '')} ${biome?.name ?? 'Không xác định'}`,
@@ -183,6 +184,10 @@ export async function executeProfileTab(
             ),
         );
 
+        container.addSeparatorComponents(
+            new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small),
+        );
+
         container.addActionRowComponents(navButtons(resolvedTarget, 'inv'));
     } else if (tab === 'stats') {
         const stats = getPlayerMultipliers(client, target);
@@ -212,6 +217,10 @@ export async function executeProfileTab(
             new TextDisplayBuilder().setContent(
                 ['### Thống kê', statLines.join('\n\n')].join('\n'),
             ),
+        );
+
+        container.addSeparatorComponents(
+            new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small),
         );
 
         container.addActionRowComponents(navButtons(resolvedTarget, 'stats'));
@@ -262,6 +271,10 @@ export async function executeProfileTab(
             new TextDisplayBuilder().setContent(
                 `**Tổng cộng: ${totalMined.toLocaleString()} khoáng sản** đã khai thác.`,
             ),
+        );
+
+        container.addSeparatorComponents(
+            new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small),
         );
 
         container.addActionRowComponents(navButtons(resolvedTarget, 'hist'));
