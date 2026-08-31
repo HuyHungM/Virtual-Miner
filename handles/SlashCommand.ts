@@ -2,9 +2,12 @@ import { REST, Routes, type Client } from 'discord.js';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 
+import type { CommandOption } from '../types/Command';
+
 interface Commands {
     name: string;
     description: string;
+    options?: CommandOption[];
 }
 
 const token = Bun.env.TOKEN;
@@ -32,7 +35,11 @@ export default async (client: Client) => {
         if (!data) continue;
 
         client.commands.set(data.name, data);
-        commands.push({ name: data.name, description: data.description });
+        commands.push({
+            name: data.name,
+            description: data.description,
+            options: data.options,
+        });
         console.log(`[SLASH COMMAND] Đã tải ${name}`);
     }
 

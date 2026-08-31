@@ -1,3 +1,5 @@
+import { BONUS_PER_LEVEL } from '../balance/BalanceConfig';
+
 export interface UpgradeStats {
     effective: number;
     fortune: number;
@@ -6,8 +8,6 @@ export interface UpgradeStats {
     chest_chance: number;
     chest_quality: number;
 }
-
-const BONUS_PER_LEVEL = 0.25;
 
 export function getUpgradeMultiplier(level: number): number {
     return 1 + Math.max(0, level) * BONUS_PER_LEVEL;

@@ -1,5 +1,4 @@
-const BASE_MAX_AMOUNT = 5;
-const MIN_AMOUNT = 3;
+import { MIN_AMOUNT, BASE_MAX_AMOUNT } from '../balance/BalanceConfig';
 
 export function calculateMiningAmount(effective: number): number {
     const maxAmount = Math.max(

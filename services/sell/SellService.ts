@@ -59,7 +59,7 @@ export async function sellAll(
             }
 
             result.totalValue = Math.floor(
-                result.totalValue * (1 + sellPriceMultiplier),
+                result.totalValue * sellPriceMultiplier,
             );
 
             await updateBalance(userId, result.totalValue, session);

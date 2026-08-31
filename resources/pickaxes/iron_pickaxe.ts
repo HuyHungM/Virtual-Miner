@@ -4,7 +4,7 @@ export default {
     name: 'Cúp sắt',
     id: 'iron_pickaxe',
     biomes: ['plains'],
-    price: 100000,
+    price: 200000,
     unlock_level: 1,
     description: 'Thời kì đồ sắt. Tăng kinh nghiệm nhận được.',
     emoji: '1543192470802931722',

@@ -37,7 +37,12 @@ export async function addItems(
     items: ItemInput[],
     session?: ClientSession,
 ) {
-    const validItems = items.filter((item) => item.quantity > 0);
+    const validItems = items
+        .map((item) => ({
+            itemId: item.itemId,
+            quantity: Number(item.quantity),
+        }))
+        .filter((item) => Number.isFinite(item.quantity) && item.quantity > 0);
 
     if (validItems.length === 0) {
         return;

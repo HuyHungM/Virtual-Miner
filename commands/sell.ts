@@ -2,8 +2,12 @@ import {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
-    EmbedBuilder,
+    ContainerBuilder,
     MessageFlags,
+    resolveColor,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
     type ColorResolvable,
 } from 'discord.js';
 
@@ -12,15 +16,24 @@ import type { Command } from '../types/Command';
 import { sellAll } from '../services/sell/SellService';
 import { getUpgradeStats } from '../services/upgrade/UpgradeService';
 import { getUser } from '../services/user/UserService';
+import {
+    getEmoji,
+    setButtonEmoji,
+    EMOJI_MONEY,
+    EMOJI_PICKAXE,
+    EMOJI_INVENTORY,
+} from '../services/emoji/EmojiService';
+import { getPetBonusForStat } from '../services/pet/PetStatService';
 
-function createButtons() {
-    return new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-            .setCustomId('mine:again')
-            .setLabel('Đào tiếp')
-            .setEmoji('⛏️')
-            .setStyle(ButtonStyle.Primary),
-    );
+function createButtons(client: Parameters<Command['run']>[0]) {
+    const againButton = new ButtonBuilder()
+        .setCustomId('mine:again')
+        .setLabel('Đào tiếp')
+        .setStyle(ButtonStyle.Primary);
+
+    setButtonEmoji(againButton, client, EMOJI_PICKAXE);
+
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(againButton);
 }
 
 export default {
@@ -43,10 +56,17 @@ export default {
 
         const stats = getUpgradeStats(user);
 
+        const pickaxe = client.resources.pickaxes.get(user.pickaxe);
+
+        const petSellBonus = getPetBonusForStat(client, user, 'sell_price');
+
+        const sellMultiplier =
+            stats.sell_price * (1 + (pickaxe?.buff?.sell_price ?? 0) + petSellBonus);
+
         const result = await sellAll(
             user.userId,
             client.resources.ores,
-            stats.sell_price,
+            sellMultiplier,
         );
 
         if (!result) {
@@ -67,32 +87,46 @@ export default {
             return;
         }
 
-        const embed = new EmbedBuilder()
-            .setColor(user.color as ColorResolvable)
-            .setTitle('💰 Bán khoáng sản')
-            .setDescription(
-                [
-                    `📦 Đã bán: **${result.soldItems} loại quặng**`,
-                    `⛏️ Số lượng: **${result.totalQuantity.toLocaleString()}**`,
-                    '',
-                    `💰 Nhận được: **+$${result.totalValue.toLocaleString()}**`,
-                ].join('\n'),
+        const moneyEmoji = getEmoji(client, EMOJI_MONEY);
+
+        const container = new ContainerBuilder()
+            .setAccentColor(resolveColor(user.color as ColorResolvable))
+
+            .addTextDisplayComponents(
+                new TextDisplayBuilder().setContent(
+                    `### ${moneyEmoji} ${interaction.user.username} • Bán khoáng sản`,
+                ),
+            )
+
+            .addSeparatorComponents(
+                new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small),
+            )
+
+            .addTextDisplayComponents(
+                new TextDisplayBuilder().setContent(
+                    [
+                        `${getEmoji(client, EMOJI_INVENTORY)} Đã bán: **${result.soldItems} loại quặng**`,
+                        `${getEmoji(client, EMOJI_PICKAXE)} Số lượng: **${result.totalQuantity.toLocaleString()}**`,
+                        '',
+                        `${moneyEmoji} Nhận được: **+$${result.totalValue.toLocaleString()}**`,
+                    ].join('\n'),
+                ),
             );
 
-        const buttons = createButtons();
+        const buttons = createButtons(client);
 
         if (interaction.isButton()) {
             await interaction.update({
-                embeds: [embed],
-                components: [buttons],
+                components: [container, buttons],
+                flags: MessageFlags.IsComponentsV2,
             });
 
             return;
         }
 
         await interaction.reply({
-            embeds: [embed],
-            components: [buttons],
+            components: [container, buttons],
+            flags: MessageFlags.IsComponentsV2,
         });
     },
 } satisfies Command;

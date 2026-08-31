@@ -4,8 +4,10 @@ import { join } from 'path';
 
 const Resource = {
     Biomes: 'biomes',
+    Boosts: 'boosts',
     Ores: 'ores',
     Pickaxes: 'pickaxes',
+    Pets: 'pets',
 } as const;
 
 export default async (client: Client) => {
@@ -27,6 +29,10 @@ export default async (client: Client) => {
                     client.resources.biomes.set(data.id, data);
                     console.log(`[BIOME] Đã tải ${data.id}`);
                     break;
+                case Resource.Boosts:
+                    client.resources.boosts.set(data.id, data);
+                    console.log(`[BOOST] Đã tải ${data.id}`);
+                    break;
                 case Resource.Ores:
                     client.resources.ores.set(data.id, data);
                     console.log(`[ORE] Đã tải ${data.id}`);
@@ -34,6 +40,10 @@ export default async (client: Client) => {
                 case Resource.Pickaxes:
                     client.resources.pickaxes.set(data.id, data);
                     console.log(`[PICKAXE] Đã tải ${data.id}`);
+                    break;
+                case Resource.Pets:
+                    client.resources.pets.set(data.id, data);
+                    console.log(`[PET] Đã tải ${data.id}`);
                     break;
             }
         }

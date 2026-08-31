@@ -1,5 +1,13 @@
 import type { Client } from 'discord.js';
 
+function getBiomeTier(client: Client, biomeId: string): number {
+    const ordered = [...client.resources.biomes.values()].sort(
+        (a, b) => a.unlock_level - b.unlock_level,
+    );
+
+    return ordered.findIndex((b) => b.id === biomeId);
+}
+
 export function validateMining(
     client: Client,
     pickaxeId: string,
@@ -16,7 +24,16 @@ export function validateMining(
         };
     }
 
-    if (!pickaxe.biomes.includes(biome.id)) {
+    // A pickaxe can mine its own biome and any biome of the same or lower tier.
+    const pickaxeTier = Math.max(
+        ...(pickaxe.biomes.length
+            ? pickaxe.biomes.map((b) => getBiomeTier(client, b))
+            : [-1]),
+    );
+
+    const targetTier = getBiomeTier(client, biome.id);
+
+    if (pickaxeTier < targetTier) {
         const minimumPickaxe = client.resources.pickaxes.get(
             biome.minimum_pickaxe,
         );

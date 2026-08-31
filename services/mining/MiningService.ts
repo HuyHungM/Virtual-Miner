@@ -6,7 +6,11 @@ import { getBiomeOres, rollOres } from './OreService';
 import { calculateMiningAmount } from './EffectiveService';
 import { calculateOreXp } from './XpService';
 import { rollChest } from './ChestService';
-import { getUpgradeStats } from '../upgrade/UpgradeService';
+import { getUpgradeStats, type UpgradeStats } from '../upgrade/UpgradeService';
+import {
+    getActiveBoosts,
+    getBoostByGroup,
+} from '../shop/BoostShopService';
 
 import { addItems } from '../inventory/InventoryService';
 
@@ -14,11 +18,24 @@ import { addMiningStats } from '../history/HistoryService';
 
 import { addXp, type LevelUpResult } from '../level/LevelService';
 
+import { getPetBonusStats } from '../pet/PetStatService';
+import { addPetXp, type PetLevelUpResult } from '../pet/PetService';
+import { rollPetReward } from '../pet/PetRewardService';
+import type { PetDropResult } from '../../types/Pet';
+
 import type { Ore } from '../../types/Ore';
 import type { Biome } from '../../types/Biome';
 import type { Pickaxe } from '../../types/Pickaxe';
 import type { ChestResult } from './ChestService';
-import { updateBalance } from '../user/UserService';
+import { updateBalance, updateGems, addPet } from '../user/UserService';
+
+function getBiomeTier(client: Client, biomeId: string): number {
+    const ordered = [...client.resources.biomes.values()].sort(
+        (a, b) => a.unlock_level - b.unlock_level,
+    );
+
+    return ordered.findIndex((b) => b.id === biomeId);
+}
 
 export type MiningFailure =
     | {
@@ -55,12 +72,55 @@ export interface MiningSuccess {
 
     chest: ChestResult;
 
+    gems: number;
+
     totalXp: number;
 
     levelUp: LevelUpResult | null;
+
+    petLevelUp: PetLevelUpResult | null;
+
+    petDrop: PetDropResult | null;
 }
 
 export type MiningResult = MiningFailure | MiningSuccess;
+
+const EXTRA_MINING_STATS = [
+    'effective',
+    'fortune',
+    'xp_multiplier',
+    'chest_chance',
+    'chest_quality',
+] as const;
+
+function applyExtraStats(
+    client: Client,
+    user: any,
+    pickaxe: Pickaxe,
+    stats: UpgradeStats,
+) {
+    const activeBoosts = getActiveBoosts(user);
+
+    const petBonuses = getPetBonusStats(client, user);
+
+    for (const stat of EXTRA_MINING_STATS) {
+        const buffVal = pickaxe.buff?.[stat] ?? 0;
+
+        let boostBonus = 0;
+
+        for (const active of activeBoosts) {
+            const boost = getBoostByGroup(client, active.boostId);
+
+            if (boost && boost.stat === stat) {
+                boostBonus += boost.multiplier - 1;
+            }
+        }
+
+        const petBonus = petBonuses[stat] ?? 0;
+
+        stats[stat] *= 1 + buffVal + boostBonus + petBonus;
+    }
+}
 
 export async function mine(client: Client, user: any): Promise<MiningResult> {
     // Validate
@@ -72,11 +132,14 @@ export async function mine(client: Client, user: any): Promise<MiningResult> {
 
     const { biome, pickaxe } = validation;
 
-    // Current level
-    const currentLevel = Math.max(1, user.level ?? 1);
+    // Biome tier (0 = plains .. 4 = abyss)
+    const biomeTier = getBiomeTier(client, biome.id);
 
     // Upgrade stats
     const stats = getUpgradeStats(user);
+
+    // Pickaxe buff + active boost (additive onto base, then upgrade multiplier)
+    applyExtraStats(client, user, pickaxe, stats);
 
     // Get ores
     const ores = getBiomeOres(client, biome.id);
@@ -144,10 +207,17 @@ export async function mine(client: Client, user: any): Promise<MiningResult> {
     const chest = rollChest(
         stats.chest_chance,
         stats.chest_quality,
-        currentLevel,
+        biomeTier,
     );
 
     const totalXp = miningXp + (chest.opened ? chest.xp : 0);
+
+    // Pet drop (only when chest opens, roll separately)
+    let petDrop: PetDropResult | null = null;
+
+    if (chest.opened) {
+        petDrop = rollPetReward(client, user);
+    }
 
     /*
      * ==========================================
@@ -158,6 +228,7 @@ export async function mine(client: Client, user: any): Promise<MiningResult> {
     const session = await mongoose.startSession();
 
     let levelUp: LevelUpResult | null = null;
+    let petLevelUp: PetLevelUpResult | null = null;
 
     try {
         await session.withTransaction(async () => {
@@ -186,8 +257,23 @@ export async function mine(client: Client, user: any): Promise<MiningResult> {
                 await updateBalance(user.userId, chest.money, session);
             }
 
+            // Chest gems
+            if (chest.opened && chest.gems > 0) {
+                await updateGems(user.userId, chest.gems, session);
+            }
+
             // Xp + level up
             levelUp = await addXp(user.userId, totalXp, session);
+
+            // Pet XP (only equipped pet)
+            if (user.equippedPet && miningXp > 0) {
+                petLevelUp = await addPetXp(user.userId, miningXp, session);
+            }
+
+            // Pet drop from chest
+            if (petDrop) {
+                await addPet(user.userId, petDrop.petId, session);
+            }
         });
 
         return {
@@ -202,9 +288,15 @@ export async function mine(client: Client, user: any): Promise<MiningResult> {
 
             chest,
 
+            gems: chest.gems,
+
             totalXp,
 
             levelUp,
+
+            petLevelUp,
+
+            petDrop,
         };
     } finally {
         await session.endSession();

@@ -16,14 +16,28 @@ import type { Command } from '../types/Command';
 
 import { mine } from '../services/mining/MiningService';
 import { getUser } from '../services/user/UserService';
+import {
+    getEmoji,
+    setButtonEmoji,
+    EMOJI_XP,
+    EMOJI_MONEY,
+    EMOJI_GEM,
+    EMOJI_CHEST,
+    EMOJI_PET,
+    EMOJI_PICKAXE,
+    EMOJI_LEVEL_UP,
+} from '../services/emoji/EmojiService';
 
-function createButtons(pickaxeId: string) {
+function createButtons(client: Client, pickaxeEmoji: string) {
+    const againButton = new ButtonBuilder()
+        .setCustomId('mine:again')
+        .setLabel('Đào tiếp')
+        .setStyle(ButtonStyle.Primary);
+
+    setButtonEmoji(againButton, client, pickaxeEmoji);
+
     return new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-            .setCustomId('mine:again')
-            .setLabel('Đào tiếp')
-            .setEmoji(pickaxeId)
-            .setStyle(ButtonStyle.Primary),
+        againButton,
 
         new ButtonBuilder()
             .setCustomId('mine:sell')
@@ -69,7 +83,7 @@ async function executeMine(client: Client, interaction: any) {
                 const minimumPickaxe = result.minimumPickaxe;
 
                 const emoji = minimumPickaxe
-                    ? (client.appEmojis.get(minimumPickaxe.emoji) ?? '')
+                    ? getEmoji(client, minimumPickaxe.emoji)
                     : '';
 
                 const container = new ContainerBuilder()
@@ -77,7 +91,7 @@ async function executeMine(client: Client, interaction: any) {
 
                     .addTextDisplayComponents(
                         new TextDisplayBuilder().setContent(
-                            '### ⛏️ Không thể đào',
+                            `### ${getEmoji(client, EMOJI_PICKAXE)} Không thể đào`,
                         ),
                     )
 
@@ -122,41 +136,92 @@ async function executeMine(client: Client, interaction: any) {
 
     // Ore content
     const oreLines = result.ores.map(({ ore, amount, xp }) => {
-        const emoji = client.appEmojis.get(ore.emoji) ?? '';
+        const emoji = getEmoji(client, ore.emoji);
 
         return [
-            `${emoji} **${ore.name}** ×${amount}`,
-            `└ ✨ ${xp.toLocaleString()} XP`,
+            `${emoji ?? ''} **${ore.name}** ×${amount}`,
+            `      └ *${xp.toLocaleString()} XP*`,
         ].join('\n');
     });
 
     // Description
     const description: string[] = [
         oreLines.join('\n'),
-        `✨ **XP: +${result.miningXp.toLocaleString()}**`,
+        `*+${result.miningXp.toLocaleString()} XP*`,
     ];
 
     if (result.chest.opened) {
-        description.push(
-            [
-                '🎁 **Rương kho báu!**',
-                `💰 Tiền: **+$${result.chest.money.toLocaleString()}**`,
-                `✨ XP: **+${result.chest.xp.toLocaleString()}**`,
-            ].join('\n'),
-        );
+        const chestE = getEmoji(client, EMOJI_CHEST);
+
+        if (result.chest.reward_type === 'money') {
+            description.push(
+                `${chestE} **Rương kho báu!**\n${getEmoji(client, EMOJI_MONEY)} Tiền: **+$${result.chest.money.toLocaleString()}**`,
+            );
+        } else if (result.chest.reward_type === 'xp') {
+            description.push(
+                `${chestE} **Rương kho báu!**\nXP: **+${result.chest.xp.toLocaleString()}**`,
+            );
+        } else if (result.chest.reward_type === 'gems') {
+            description.push(
+                `${chestE} **Rương kho báu!**\n${getEmoji(client, EMOJI_GEM)} Gem: **+${result.chest.gems}**`,
+            );
+        }
     }
 
-    if (result.chest.opened && result.chest.xp > 0) {
-        description.push(`📈 **Tổng XP: +${result.totalXp.toLocaleString()}**`);
+    if (result.totalXp > 0) {
+        description.push(`***Tổng: +${result.totalXp.toLocaleString()} XP***`);
     }
 
     if (result.levelUp && result.levelUp.levelsGained > 0) {
         description.push(
             [
-                '🎉 **LEVEL UP!**',
+                `${getEmoji(client, EMOJI_LEVEL_UP)} **LEVEL UP!**`,
                 `Lv.${result.levelUp.oldLevel} → Lv.${result.levelUp.newLevel}`,
             ].join('\n'),
         );
+    }
+
+    // Pet XP
+    if (result.petLevelUp) {
+        const petDef = client.resources.pets.get(result.petLevelUp.petId);
+        const petEmoji = petDef
+            ? getEmoji(client, petDef.emoji)
+            : getEmoji(client, EMOJI_PET);
+
+        if (result.petLevelUp.levelsGained > 0) {
+            description.push(
+                [
+                    `${petEmoji} **${petDef?.name ?? 'Pet'} leveling up!**`,
+                    `Lv.${result.petLevelUp.oldLevel} → Lv.${result.petLevelUp.newLevel}`,
+                ].join('\n'),
+            );
+        } else if (result.miningXp > 0) {
+            description.push(
+                `${petEmoji} **${petDef?.name ?? 'Pet'}:** *+${result.miningXp.toLocaleString()} Pet XP*`,
+            );
+        }
+    }
+
+    // Pet drop
+    if (result.petDrop) {
+        const petDropEmoji = getEmoji(client, result.petDrop.emoji);
+
+        if (result.petDrop.isDuplicate) {
+            description.push(
+                [
+                    `${petDropEmoji} **Rương kho báu!**`,
+                    `Nhận được **${result.petDrop.name}** (đã sở hữu)`,
+                    `+${result.petDrop.xpAwarded} Pet XP cho thú cưng hiện tại`,
+                ].join('\n'),
+            );
+        } else {
+            description.push(
+                [
+                    `${petDropEmoji} **Rương kho báu!**`,
+                    `Bạn nhận được **${result.petDrop.name}**!`,
+                ].join('\n'),
+            );
+        }
     }
 
     const container = new ContainerBuilder()
@@ -165,7 +230,7 @@ async function executeMine(client: Client, interaction: any) {
         // Title
         .addTextDisplayComponents(
             new TextDisplayBuilder().setContent(
-                `### ${result.pickaxe ? client.appEmojis.get(result.pickaxe.emoji) : ''} Khai thác thành công`,
+                `### ${interaction.user.username}`,
             ),
         )
 
@@ -190,7 +255,7 @@ async function executeMine(client: Client, interaction: any) {
         )
 
         // Button
-        .addActionRowComponents(createButtons(result.pickaxe.emoji));
+        .addActionRowComponents(createButtons(client, result.pickaxe.emoji));
 
     if (interaction.isButton()) {
         await interaction.update({

@@ -2,6 +2,13 @@ import type { ClientSession } from 'mongoose';
 
 import { getUser } from '../user/UserService';
 
+import {
+    XP_POINTS,
+    XP_TAIL_GROWTH,
+    MAX_SAFE_XP,
+    type CurvePoint,
+} from '../balance/BalanceConfig';
+
 export interface LevelUpResult {
     oldLevel: number;
     newLevel: number;
@@ -10,57 +17,34 @@ export interface LevelUpResult {
     levelsGained: number;
 }
 
-const XP_POINTS = [
-    {
-        level: 1,
-        xp: 200,
-    },
-    {
-        level: 10,
-        xp: 5_000,
-    },
-    {
-        level: 150,
-        xp: 1_000_000,
-    },
-];
+function interpolate(points: CurvePoint[], level: number): number {
+    if (level <= points[0]!.level) {
+        return points[0]!.value;
+    }
+
+    for (let i = 1; i < points.length; i++) {
+        const start = points[i - 1]!;
+        const end = points[i]!;
+
+        if (level <= end.level) {
+            const progress = (level - start.level) / (end.level - start.level);
+
+            return Math.floor(
+                Math.exp(
+                    Math.log(start.value) +
+                        progress * (Math.log(end.value) - Math.log(start.value)),
+                ),
+            );
+        }
+    }
+
+    const last = points[points.length - 1]!;
+
+    return Math.floor(last.value * Math.pow(XP_TAIL_GROWTH, level - last.level));
+}
 
 export function getRequiredXp(level: number): number {
-    if (level <= 1) {
-        return 200;
-    }
-
-    let start = XP_POINTS[0]!;
-    let end = XP_POINTS[1]!;
-
-    for (let i = 1; i < XP_POINTS.length; i++) {
-        const point = XP_POINTS[i]!;
-
-        if (level <= point.level) {
-            end = point;
-            start = XP_POINTS[i - 1]!;
-            break;
-        }
-
-        start = point;
-        end = point;
-    }
-
-    if (level >= XP_POINTS[XP_POINTS.length - 1]!.level) {
-        const last = XP_POINTS[XP_POINTS.length - 1]!;
-
-        const growth = Math.pow(1.075, level - last.level);
-
-        return Math.floor(last.xp * growth);
-    }
-
-    const progress = (level - start.level) / (end.level - start.level);
-
-    const xp = Math.exp(
-        Math.log(start.xp) + progress * (Math.log(end.xp) - Math.log(start.xp)),
-    );
-
-    return Math.floor(xp);
+    return interpolate(XP_POINTS, Math.max(1, level));
 }
 
 export function calculateLevel(
@@ -103,7 +87,12 @@ export async function addXp(
 
     const oldLevel = user.level;
 
-    const result = calculateLevel(user.level, user.xp + amount);
+    const safeAmount = Math.min(amount, MAX_SAFE_XP);
+
+    const result = calculateLevel(
+        user.level,
+        Math.min(user.xp + safeAmount, MAX_SAFE_XP),
+    );
 
     user.level = result.level;
     user.xp = result.xp;

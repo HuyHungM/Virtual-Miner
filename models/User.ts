@@ -1,5 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 
+import { MAX_SAFE_MONEY, MAX_SAFE_XP } from '../services/balance/BalanceConfig';
+
 const UserSchema = new Schema(
     {
         userId: {
@@ -16,8 +18,15 @@ const UserSchema = new Schema(
             type: Number,
             default: 0,
             min: 0,
+            max: MAX_SAFE_XP,
         },
         balance: {
+            type: Number,
+            default: 0,
+            min: 0,
+            max: MAX_SAFE_MONEY,
+        },
+        gems: {
             type: Number,
             default: 0,
             min: 0,
@@ -77,6 +86,46 @@ const UserSchema = new Schema(
                 default: 0,
                 min: 0,
             },
+        },
+        active_boosts: {
+            type: [
+                {
+                    boostId: {
+                        type: String,
+                        required: true,
+                    },
+                    expiresAt: {
+                        type: Date,
+                        required: true,
+                    },
+                },
+            ],
+            default: [],
+        },
+        pets: {
+            type: [
+                {
+                    petId: {
+                        type: String,
+                        required: true,
+                    },
+                    level: {
+                        type: Number,
+                        default: 1,
+                        min: 1,
+                    },
+                    xp: {
+                        type: Number,
+                        default: 0,
+                        min: 0,
+                    },
+                },
+            ],
+            default: [],
+        },
+        equippedPet: {
+            type: String,
+            default: null,
         },
     },
     {

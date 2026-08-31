@@ -1,162 +1,108 @@
+import {
+    CHEST_MONEY_BY_TIER,
+    CHEST_XP_BY_TIER,
+    CHEST_MIN_REWARD_MULTIPLIER,
+    CHEST_MAX_REWARD_MULTIPLIER,
+    CHEST_BASE_CHANCE,
+    CHEST_MAX_CHANCE,
+} from '../balance/BalanceConfig';
+
 export interface ChestResult {
     opened: boolean;
+    reward_type: 'money' | 'xp' | 'gems';
     money: number;
     xp: number;
+    gems: number;
+    petChanceRolled: boolean;
 }
 
-interface CurvePoint {
-    level: number;
-    value: number;
-}
-
-// Config
-const MONEY_CURVE: CurvePoint[] = [
-    {
-        level: 1,
-        value: 100,
-    },
-    {
-        level: 10,
-        value: 2_000,
-    },
-    {
-        level: 150,
-        value: 1_000_000,
-    },
-];
-
-const XP_CURVE: CurvePoint[] = [
-    {
-        level: 1,
-        value: 50,
-    },
-    {
-        level: 10,
-        value: 1_200,
-    },
-    {
-        level: 150,
-        value: 300_000,
-    },
-];
-
-const MIN_REWARD_MULTIPLIER = 0.8;
-const MAX_REWARD_MULTIPLIER = 1.2;
-
-const MAX_CHEST_CHANCE = 100;
-
-function rollChestChance(chance: number): boolean {
-    const safeChance = Math.max(0, Math.min(MAX_CHEST_CHANCE, chance));
+function rollChestChance(chestChance: number): boolean {
+    const safeChance = Math.max(0, Math.min(CHEST_MAX_CHANCE, chestChance));
     return Math.random() * 100 < safeChance;
-}
-
-/**
- * Money:
- * Lv1   = 100
- * Lv10  = 2,000
- * Lv150 = 1,000,000
- *
- * XP:
- * Lv1   = 50
- * Lv10  = 1,200
- * Lv150 = 300,000
- */
-function interpolateCurve(level: number, points: CurvePoint[]): number {
-    const safeLevel = Math.max(1, level);
-
-    if (points.length === 0) {
-        return 0;
-    }
-
-    if (safeLevel <= points[0]!.level) {
-        return points[0]!.value;
-    }
-
-    for (let i = 1; i < points.length; i++) {
-        const start = points[i - 1]!;
-
-        const end = points[i]!;
-
-        if (safeLevel <= end.level) {
-            const progress =
-                (safeLevel - start.level) / (end.level - start.level);
-
-            /*
-             * value =
-             * start *
-             * (end / start) ^ progress
-             */
-
-            const value =
-                start.value * Math.pow(end.value / start.value, progress);
-
-            return Math.floor(value);
-        }
-    }
-
-    const last = points[points.length - 1]!;
-
-    const previous = points[points.length - 2]!;
-
-    const growth = Math.pow(
-        last.value / previous.value,
-        1 / (last.level - previous.level),
-    );
-
-    return Math.floor(last.value * Math.pow(growth, safeLevel - last.level));
 }
 
 function rollRewardMultiplier(): number {
     return (
-        MIN_REWARD_MULTIPLIER +
-        Math.random() * (MAX_REWARD_MULTIPLIER - MIN_REWARD_MULTIPLIER)
+        CHEST_MIN_REWARD_MULTIPLIER +
+        Math.random() *
+            (CHEST_MAX_REWARD_MULTIPLIER - CHEST_MIN_REWARD_MULTIPLIER)
     );
 }
 
-function calculateMoneyReward(level: number, quality: number): number {
-    const base = interpolateCurve(level, MONEY_CURVE);
-
-    const qualityMultiplier = Math.max(1, quality);
-
-    const randomMultiplier = rollRewardMultiplier();
-
-    return Math.max(1, Math.floor(base * qualityMultiplier * randomMultiplier));
+function getTierValue(values: number[], tier: number): number {
+    const safeTier = Math.max(0, Math.min(values.length - 1, tier));
+    return values[safeTier]!;
 }
 
-function calculateXpReward(level: number, quality: number): number {
-    const base = interpolateCurve(level, XP_CURVE);
-
+function calculateMoneyReward(tier: number, quality: number): number {
+    const base = getTierValue(CHEST_MONEY_BY_TIER, tier);
     const qualityMultiplier = Math.max(1, quality);
-
-    const randomMultiplier = rollRewardMultiplier();
-
-    return Math.max(1, Math.floor(base * qualityMultiplier * randomMultiplier));
+    return Math.max(
+        1,
+        Math.floor(base * qualityMultiplier * rollRewardMultiplier()),
+    );
 }
 
-// main
+function calculateXpReward(tier: number, quality: number): number {
+    const base = getTierValue(CHEST_XP_BY_TIER, tier);
+    const qualityMultiplier = Math.max(1, quality);
+    return Math.max(
+        1,
+        Math.floor(base * qualityMultiplier * rollRewardMultiplier()),
+    );
+}
 
+function calculateGemReward(quality: number): number {
+    const base = 1 + Math.floor(quality * Math.random() * 2);
+    return Math.min(3, Math.max(1, base));
+}
+
+function rollRewardType(): 'money' | 'xp' | 'gems' {
+    const roll = Math.random() * 100;
+
+    if (roll < 40) return 'money';
+    if (roll < 80) return 'xp';
+    return 'gems';
+}
+
+/**
+ * @param chestChance base chance (0-100), already including upgrade multiplier
+ * @param chestQuality quality multiplier
+ * @param biomeTier the tier of the biome being mined (0..4)
+ * @param chestUpgradeMultiplier multiplier from the chest_chance upgrade
+ */
 export function rollChest(
     chestChance: number,
     chestQuality: number,
-    level: number,
+    biomeTier: number,
+    chestUpgradeMultiplier = 1,
 ): ChestResult {
-    const opened = rollChestChance(chestChance);
+    const effectiveChance = Math.max(
+        CHEST_BASE_CHANCE,
+        chestChance * chestUpgradeMultiplier,
+    );
+
+    const opened = rollChestChance(effectiveChance);
 
     if (!opened) {
         return {
             opened: false,
+            reward_type: 'money',
             money: 0,
             xp: 0,
+            gems: 0,
+            petChanceRolled: false,
         };
     }
 
-    const money = calculateMoneyReward(level, chestQuality);
-
-    const xp = calculateXpReward(level, chestQuality);
+    const type = rollRewardType();
 
     return {
         opened: true,
-        money,
-        xp,
+        reward_type: type,
+        money: type === 'money' ? calculateMoneyReward(biomeTier, chestQuality) : 0,
+        xp: type === 'xp' ? calculateXpReward(biomeTier, chestQuality) : 0,
+        gems: type === 'gems' ? calculateGemReward(chestQuality) : 0,
+        petChanceRolled: true,
     };
 }

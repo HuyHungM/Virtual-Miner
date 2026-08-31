@@ -4,7 +4,7 @@ export default {
     name: 'Cúp đồng',
     id: 'copper_pickaxe',
     biomes: ['plains'],
-    price: 5000,
+    price: 15000,
     unlock_level: 1,
     description: 'Cứng hơn một chút rồi. Tăng một chút gia tài.',
     emoji: '1543192473273106472',
