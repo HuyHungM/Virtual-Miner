@@ -6,7 +6,7 @@ export default {
     biomes: ['gem_highlands'],
     price: 180000000,
     unlock_level: 150,
-    description: 'Hồng rực lửa, sức mạnh bùng nổ.',
+    description: 'Tinh ngọc đỏ thẫm, ẩn chứa một ngọn lửa chưa tàn.',
     emoji: '1543198574605508759',
     buff: {
         effective: 1.45,

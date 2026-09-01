@@ -6,11 +6,13 @@ import {
     executeShopMenu,
     executeShopBoosts,
     executeShopUpgrades,
+    executeShopBackpacks,
     getUserOrReply,
 } from '../commands/shop';
 import { executeBiome } from '../commands/biome';
 import { executeProfileTab } from '../commands/profile';
 import { executePets } from '../commands/pets';
+import { executeMenu } from '../commands/menu';
 import { hasActiveBoost } from '../services/shop/BoostShopService';
 
 const MINUTE_MS = 60 * 1000;
@@ -22,6 +24,44 @@ export default async (client: Client) => {
         }
 
         const customId = interaction.customId;
+
+        // ---- Main menu ----
+        if (customId === 'menu:back') {
+            await executeMenu(client, interaction);
+            return;
+        }
+
+        if (customId === 'menu:mine') {
+            const mine = client.commands.get('mine');
+            if (mine) await mine.run(client, interaction);
+            return;
+        }
+
+        if (customId === 'menu:sell') {
+            const sell = client.commands.get('sell');
+            if (sell) await sell.run(client, interaction);
+            return;
+        }
+
+        if (customId === 'menu:profile') {
+            await executeProfileTab(client, interaction, 'inv');
+            return;
+        }
+
+        if (customId === 'menu:pets') {
+            await executePets(client, interaction, 'owned', 0);
+            return;
+        }
+
+        if (customId === 'menu:shop') {
+            await executeShopMenu(client, interaction);
+            return;
+        }
+
+        if (customId === 'menu:biome') {
+            await executeBiome(client, interaction);
+            return;
+        }
 
         // ---- Mine flow ----
         if (customId === 'mine:again') {
@@ -54,6 +94,11 @@ export default async (client: Client) => {
 
         if (customId === 'shop:upgrade') {
             await executeShopUpgrades(client, interaction, 0);
+            return;
+        }
+
+        if (customId === 'shop:backpack') {
+            await executeShopBackpacks(client, interaction, 0);
             return;
         }
 
@@ -102,6 +147,19 @@ export default async (client: Client) => {
             return;
         }
 
+        // ---- Backpack pagination ----
+        if (customId.startsWith('backpack:prev:')) {
+            const page = Number(customId.split(':')[2]);
+            await executeShopBackpacks(client, interaction, page - 1);
+            return;
+        }
+
+        if (customId.startsWith('backpack:next:')) {
+            const page = Number(customId.split(':')[2]);
+            await executeShopBackpacks(client, interaction, page + 1);
+            return;
+        }
+
         // ---- Pickaxe purchase / equip ----
         if (customId.startsWith('shop:select:')) {
             await handlePickaxeSelect(client, interaction);
@@ -111,6 +169,18 @@ export default async (client: Client) => {
         // ---- Boost purchase ----
         if (customId.startsWith('boost:buy:')) {
             await handleBoostBuy(client, interaction);
+            return;
+        }
+
+        // ---- Potion purchase ----
+        if (customId.startsWith('potion:buy:')) {
+            await handlePotionBuy(client, interaction);
+            return;
+        }
+
+        // ---- Backpack purchase ----
+        if (customId.startsWith('backpack:buy:')) {
+            await handleBackpackBuy(client, interaction);
             return;
         }
 
@@ -126,7 +196,10 @@ export default async (client: Client) => {
             return;
         }
 
-        if (customId.startsWith('pet:equip:') || customId.startsWith('pet:info:')) {
+        if (
+            customId.startsWith('pet:equip:') ||
+            customId.startsWith('pet:info:')
+        ) {
             if (customId.startsWith('pet:equip:')) {
                 await handlePetEquip(client, interaction);
             }
@@ -175,6 +248,12 @@ export default async (client: Client) => {
         if (customId.startsWith('profile:hist:')) {
             const target = customId.split(':')[2];
             await executeProfileTab(client, interaction, 'hist', target);
+            return;
+        }
+
+        if (customId.startsWith('profile:charms:')) {
+            const target = customId.split(':')[2];
+            await executeProfileTab(client, interaction, 'charms', target);
             return;
         }
     });
@@ -394,6 +473,143 @@ async function handleBoostBuy(client: Client, interaction: any) {
         console.error(error);
         await interaction.reply({
             content: 'Đã xảy ra lỗi khi mua thuốc.',
+            flags: MessageFlags.Ephemeral,
+        });
+    } finally {
+        await session.endSession();
+    }
+}
+
+async function handlePotionBuy(client: Client, interaction: any) {
+    const potionId = interaction.customId.split(':')[2];
+
+    if (!potionId) {
+        await interaction.reply({
+            content: 'Không tìm thấy loại thuốc này.',
+            flags: MessageFlags.Ephemeral,
+        });
+        return;
+    }
+
+    const potion = client.resources.potions.get(potionId);
+
+    if (!potion) {
+        await interaction.reply({
+            content: 'Không tìm thấy loại thuốc này.',
+            flags: MessageFlags.Ephemeral,
+        });
+        return;
+    }
+
+    const { getPotionPrice, buyAndUsePotion } =
+        await import('../services/shop/PotionShopService');
+
+    const { getUser } = await import('../services/user/UserService');
+
+    const user = await getUser(interaction.user.id);
+    if (!user) {
+        await interaction.reply({
+            content:
+                'Bạn chưa tạo tài khoản.\n' +
+                '`/start` để bắt đầu hành trình cày cuốc của bạn.',
+            flags: MessageFlags.Ephemeral,
+        });
+        return;
+    }
+
+    const price = getPotionPrice(potion.id, user.level);
+
+    if (user.gems < price) {
+        await interaction.reply({
+            content: 'Bạn không đủ gem để mua loại thuốc này.',
+            flags: MessageFlags.Ephemeral,
+        });
+        return;
+    }
+
+    const session = await mongoose.startSession();
+
+    try {
+        await session.withTransaction(async () => {
+            await buyAndUsePotion(user.userId, user.level, potion.id, session);
+        });
+
+        await executeShopBoosts(client, interaction, 0);
+    } catch (error) {
+        console.error(error);
+        await interaction.reply({
+            content:
+                'Không thể mua thuốc ngay lúc này. Kiểm tra lại trạng thái hiệu ứng của bạn.',
+            flags: MessageFlags.Ephemeral,
+        });
+    } finally {
+        await session.endSession();
+    }
+}
+
+async function handleBackpackBuy(client: Client, interaction: any) {
+    const parts = interaction.customId.split(':');
+    const backpackId = parts[2];
+    const page = Number(parts[3] ?? 0);
+
+    const { getUser } = await import('../services/user/UserService');
+
+    const user = await getUser(interaction.user.id);
+    if (!user) {
+        await interaction.reply({
+            content:
+                'Bạn chưa tạo tài khoản.\n' +
+                '`/start` để bắt đầu hành trình cày cuốc của bạn.',
+            flags: MessageFlags.Ephemeral,
+        });
+        return;
+    }
+
+    const backpack = client.resources.backpacks.get(backpackId);
+    if (!backpack) {
+        await interaction.reply({
+            content: 'Không tìm thấy ba lô này.',
+            flags: MessageFlags.Ephemeral,
+        });
+        return;
+    }
+
+    const session = await mongoose.startSession();
+
+    try {
+        await session.withTransaction(async () => {
+            await (
+                await import('../services/shop/BackpackShopService')
+            ).buyBackpack(client, user.userId, backpackId, session);
+        });
+
+        await executeShopBackpacks(client, interaction, page);
+    } catch (error) {
+        console.error(error);
+        let content = 'Đã xảy ra lỗi khi mua ba lô.';
+        if (error instanceof Error) {
+            switch (error.message) {
+                case 'INSUFFICIENT_BALANCE':
+                    content = 'Bạn không đủ tiền để mua ba lô này.';
+                    break;
+                case 'BIOME_LOCKED':
+                    content = 'Vùng này chưa được mở khoá ba lô.';
+                    break;
+                case 'PREVIOUS_BIOME_REQUIRED':
+                    content =
+                        'Bạn cần mua đủ 4 ba lô của vùng trước để mở khoá vùng này.';
+                    break;
+                case 'PREVIOUS_TIER_REQUIRED':
+                    content =
+                        'Bạn cần mua ba lô tầng trước trước khi mua tầng này.';
+                    break;
+                case 'ALREADY_OWNED':
+                    content = 'Bạn đã sở hữu ba lô này.';
+                    break;
+            }
+        }
+        await interaction.reply({
+            content,
             flags: MessageFlags.Ephemeral,
         });
     } finally {

@@ -5,6 +5,7 @@ export default {
     id: 'legendary_abyss',
     minimum_pickaxe: 'obsidian_pickaxe',
     unlock_level: 500,
+    cooldown: 3.5,
     emoji: '1544040144745664523',
-    description: 'Vực sâu tận cùng, nơi chỉ dành cho những bậc thầy khai thác.',
+    description: 'Qua muôn tầng địa giới, chỉ còn vực sâu chờ được khai phá.',
 } satisfies Biome;

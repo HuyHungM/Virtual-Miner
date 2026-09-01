@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
-import type { Collection } from 'discord.js';
-
-import User from '../../models/User';
-import Inventory from '../../models/Inventory';
+import type { Client, Collection } from 'discord.js';
 
 import type { Ore } from '../../types/Ore';
 import { clearInventory, getInventory } from '../inventory/InventoryService';
-import { updateBalance } from '../user/UserService';
+import { getUser, updateBalance } from '../user/UserService';
+import { getUpgradeStats } from '../upgrade/UpgradeService';
+import { getPetBonusForStat } from '../pet/PetStatService';
+import { getCharmBonusForStat } from '../charm/CharmService';
 
 export interface SellResult {
     soldItems: number;
@@ -14,57 +14,95 @@ export interface SellResult {
     totalValue: number;
 }
 
-export async function sellAll(
-    userId: string,
-    ores: Collection<string, Ore>,
-    sellPriceMultiplier = 0,
-): Promise<SellResult> {
+export function calculateSellMultiplier(client: Client, user: any): number {
+    const stats = getUpgradeStats(user);
+
+    const pickaxe = client.resources.pickaxes.get(user?.pickaxe ?? '');
+
+    const petSellBonus = getPetBonusForStat(client, user, 'sell_price');
+
+    const charmSellBonus = getCharmBonusForStat(client, user, 'sell_price');
+
+    const sellMultiplier =
+        stats.sell_price *
+        (1 + (pickaxe?.buff?.sell_price ?? 0) + petSellBonus + charmSellBonus);
+
+    return sellMultiplier;
+}
+
+export function calculateSellResult(
+    client: Client,
+    items: any[],
+    sellPriceMultiplier: number,
+): SellResult {
+    const result: SellResult = {
+        soldItems: 0,
+        totalQuantity: 0,
+        totalValue: 0,
+    };
+
+    for (const item of items) {
+        const ore = client.resources.ores.get(item.itemId);
+
+        if (!ore) {
+            throw new Error(`Unknown item in inventory: ${item.itemId}`);
+        }
+
+        if (item.quantity <= 0) {
+            continue;
+        }
+
+        result.soldItems++;
+        result.totalQuantity += item.quantity;
+
+        result.totalValue += ore.value * item.quantity;
+    }
+
+    if (result.totalValue <= 0) {
+        return {
+            soldItems: 0,
+            totalQuantity: 0,
+            totalValue: 0,
+        };
+    }
+
+    result.totalValue = Math.floor(result.totalValue * sellPriceMultiplier);
+
+    return result;
+}
+
+export async function sellAll(client: Client, user: any): Promise<SellResult> {
     const session = await mongoose.startSession();
 
     try {
-        const result: SellResult = {
+        let result: SellResult = {
             soldItems: 0,
             totalQuantity: 0,
             totalValue: 0,
         };
 
+        const sellMultiplier = calculateSellMultiplier(client, user);
+
         await session.withTransaction(async () => {
-            const inventory = await getInventory(userId, session);
+            const inventory = await getInventory(user.userId, session);
 
             if (!inventory || inventory.items.length === 0) {
                 return;
             }
 
-            for (const item of inventory.items) {
-                const ore = ores.get(item.itemId);
-
-                if (!ore) {
-                    throw new Error(
-                        `Unknown item in inventory: ${item.itemId}`,
-                    );
-                }
-
-                if (item.quantity <= 0) {
-                    continue;
-                }
-
-                result.soldItems++;
-                result.totalQuantity += item.quantity;
-
-                result.totalValue += ore.value * item.quantity;
-            }
+            result = calculateSellResult(
+                client,
+                inventory.items,
+                sellMultiplier,
+            );
 
             if (result.totalValue <= 0) {
                 return;
             }
 
-            result.totalValue = Math.floor(
-                result.totalValue * sellPriceMultiplier,
-            );
+            await updateBalance(user.userId, result.totalValue, session);
 
-            await updateBalance(userId, result.totalValue, session);
-
-            await clearInventory(userId, session);
+            await clearInventory(user.userId, session);
         });
 
         return result;

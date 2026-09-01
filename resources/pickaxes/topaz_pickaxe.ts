@@ -6,7 +6,7 @@ export default {
     biomes: ['ancient_forest'],
     price: 6000000,
     unlock_level: 50,
-    description: 'Ánh cam rực rỡ, sức mạnh đáng gờm.',
+    description: 'Hoàng ngọc soi lối, đánh thức linh khí nơi cổ lâm.',
     emoji: '1543198570545680434',
     buff: {
         effective: 1.0,

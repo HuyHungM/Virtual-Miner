@@ -5,7 +5,7 @@ export default {
     name: 'Creeper',
     emoji: '1544019308630380594',
     rarity: 'epic',
-    description: 'Creeper bí ẩn, nổ tung kho báu cho bạn.',
+    description: 'Creeper - Kẻ gieo rắc hỗn loạn.',
     baseStats: {
         chest_chance: 0.06,
         chest_quality: 0.05,

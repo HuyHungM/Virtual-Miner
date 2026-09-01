@@ -6,7 +6,7 @@ export default {
     biomes: ['plains'],
     price: 5000,
     unlock_level: 1,
-    description: 'Than đen nhánh, thêm một chút kinh nghiệm.',
+    description: 'Sinh từ lòng đất, đồng hành cùng bước chân đầu tiên',
     emoji: '1543198580809138296',
     buff: {
         effective: 0.25,

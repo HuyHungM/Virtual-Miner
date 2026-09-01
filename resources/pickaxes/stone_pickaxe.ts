@@ -6,7 +6,7 @@ export default {
     biomes: ['plains'],
     price: 1500,
     unlock_level: 1,
-    description: 'Thời kì đồ đá. Món hàng đầu tiên.',
+    description: 'Từ đá thô sơ, hành trình khai phá bắt đầu.',
     emoji: '1543192475374583818',
     buff: {
         effective: 0.15,

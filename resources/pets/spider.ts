@@ -5,7 +5,7 @@ export default {
     name: 'Spider',
     emoji: '1544019290070585494',
     rarity: 'rare',
-    description: 'Nhện bóng đêm,expert trong việc tìm quặng hiếm.',
+    description: 'Spider - Bóng đen bò qua những vách đá.',
     baseStats: {
         fortune: 0.06,
         chest_chance: 0.04,

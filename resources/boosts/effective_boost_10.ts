@@ -5,7 +5,7 @@ export default {
     boostId: 'mining_speed',
     name: 'Thuốc hiệu quả 10p',
     description: 'Tăng 50% hiệu quả khai thác trong 10 phút',
-    emoji: '1543999999999999101',
+    emoji: '1544346308943552532',
     price: 4,
     duration: 10,
     stat: 'effective',

@@ -5,7 +5,7 @@ export default {
     name: 'Chicken',
     emoji: '1544019312644456489',
     rarity: 'common',
-    description: 'Một chú gà nhỏ nhưng rất siêng năng.',
+    description: 'Đừng đánh giá thấp một chú gà.',
     baseStats: {
         xp_multiplier: 0.02,
         sell_price: 0.02,

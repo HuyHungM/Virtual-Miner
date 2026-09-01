@@ -5,7 +5,7 @@ export default {
     name: 'Wither Skeleton',
     emoji: '1544019329203437728',
     rarity: 'legendary',
-    description: 'Wither Skeleton hùng mạnh, thống lĩnh mọi mỏ.',
+    description: 'Wither Skeleton - Bóng ma lang thang giữa pháo đài.',
     baseStats: {
         effective: 0.1,
         fortune: 0.1,

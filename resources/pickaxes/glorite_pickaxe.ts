@@ -6,7 +6,7 @@ export default {
     biomes: ['legendary_abyss'],
     price: 36_000_000_000,
     unlock_level: 500,
-    description: 'Glorite huy hoàng, sức mạnh gần chạm tới thần thánh.',
+    description: 'Từ nơi không ánh sáng, huy quang đã được sinh ra.',
     emoji: '1543199129490956339',
     buff: {
         effective: 3.05,

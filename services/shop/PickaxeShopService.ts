@@ -9,6 +9,15 @@ export function getShopPickaxes(client: Client, userLevel: number): Pickaxe[] {
         .filter((pickaxe) => pickaxe.unlock_level <= userLevel);
 }
 
+export function getNextShopLevel(client: Client, userLevel: number) {
+    return (
+        [...client.resources.pickaxes.values()]
+            .sort((a, b) => a.price - b.price)
+            .find((pickaxe) => pickaxe.unlock_level > userLevel)
+            ?.unlock_level ?? null
+    );
+}
+
 export function getShopPage(
     client: Client,
     userLevel: number,

@@ -3,7 +3,7 @@ import type { Ore } from '../../types/Ore';
 export default {
     name: 'Quặng sunite',
     id: 'sunite',
-    emoji: '',
+    emoji: '1544364420182970449',
     biome: 'legendary_abyss',
     value: 900,
     xp: 580,

@@ -6,7 +6,7 @@ export default {
     biomes: ['volcano_core'],
     price: 2_500_000_000,
     unlock_level: 250,
-    description: 'Mithril huyền thoại, nhẹ mà cực mạnh.',
+    description: 'Từ lòng núi sâu, ngân quang dần thức tỉnh.',
     emoji: '1543198561376935987',
     buff: {
         effective: 2.05,

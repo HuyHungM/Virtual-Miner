@@ -6,7 +6,7 @@ export default {
     biomes: ['gem_highlands'],
     price: 40000000,
     unlock_level: 150,
-    description: 'Xanh biếc cao nguyên ngọc, bước vào thời đại quý tộc.',
+    description: 'Lam ngọc thanh lãnh, mang khí chất của bậc vương giả.',
     emoji: '1543198572445573192',
     buff: {
         effective: 1.2,

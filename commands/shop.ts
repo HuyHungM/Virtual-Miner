@@ -16,7 +16,10 @@ import {
 import User from '../models/User';
 import type { Command } from '../types/Command';
 
-import { getShopPage } from '../services/shop/PickaxeShopService';
+import {
+    getNextShopLevel,
+    getShopPage,
+} from '../services/shop/PickaxeShopService';
 import {
     getBoosts,
     getActiveBoosts,
@@ -25,6 +28,18 @@ import {
     getBoostByGroup,
 } from '../services/shop/BoostShopService';
 import { getUpgradePage } from '../services/shop/UpgradeShopService';
+import { getPotionPrice } from '../services/shop/PotionShopService';
+import {
+    getBackpackBiomePage,
+    getNextBackpackUnlock,
+    getEquippedBackpack,
+    isBackpackOwned,
+} from '../services/shop/BackpackShopService';
+import {
+    getActiveTrap,
+    hasTrapImmunity,
+    getImmunityRemainingMs,
+} from '../services/chest/TrapService';
 import {
     getEmoji,
     setButtonEmoji,
@@ -35,6 +50,9 @@ import {
     EMOJI_UPGRADE,
     EMOJI_CLOCK,
     EMOJI_POTION,
+    EMOJI_BACKPACK,
+    EMOJI_TRAP,
+    EMOJI_CHECK,
 } from '../services/emoji/EmojiService';
 
 export async function getUserOrReply(
@@ -145,6 +163,12 @@ export async function executeShopMenu(
                 desc: 'Tăng cường chỉ số vĩnh viễn.',
                 emoji: EMOJI_UPGRADE,
             },
+            {
+                id: 'shop:backpack',
+                title: 'Ba lô',
+                desc: 'Giảm thời gian chờ giữa mỗi lần đào.',
+                emoji: EMOJI_BACKPACK,
+            },
         ];
 
         for (const s of sections) {
@@ -163,6 +187,10 @@ export async function executeShopMenu(
                     ),
             );
         }
+
+        container.addSeparatorComponents(
+            new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small),
+        );
 
         container.addActionRowComponents(backRow('menu:back'));
 
@@ -184,6 +212,7 @@ export async function executeShopPickaxes(
     if (!user) return;
 
     const result = getShopPage(client, user.level, user.pickaxe, page);
+    const nextShopLevel = getNextShopLevel(client, user.level);
 
     await replyOrUpdate(interaction, () => {
         const container = new ContainerBuilder().setAccentColor(
@@ -256,17 +285,24 @@ export async function executeShopPickaxes(
 
         container.addTextDisplayComponents(
             new TextDisplayBuilder().setContent(
+                nextShopLevel
+                    ? `*Cấp độ mở khoá tiếp theo: Lv.${nextShopLevel}*`
+                    : '*Đã đạt đến giới hạn của Shop*',
+            ),
+        );
+
+        container.addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(
                 `Trang ${result.page + 1}/${result.totalPages}`,
             ),
         );
 
+        container.addSeparatorComponents(
+            new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small),
+        );
+
         container.addActionRowComponents(
             new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
-                new ButtonBuilder()
-                    .setCustomId('shop:menu')
-                    .setLabel('Quay lại')
-                    .setStyle(ButtonStyle.Secondary),
-
                 new ButtonBuilder()
                     .setCustomId(`shop:prev:${result.page}`)
                     .setLabel('◀')
@@ -278,6 +314,10 @@ export async function executeShopPickaxes(
                     .setLabel('▶')
                     .setStyle(ButtonStyle.Primary)
                     .setDisabled(result.page >= result.totalPages - 1),
+                new ButtonBuilder()
+                    .setCustomId('shop:menu')
+                    .setLabel('Quay lại')
+                    .setStyle(ButtonStyle.Secondary),
             ),
         );
 
@@ -298,13 +338,16 @@ export async function executeShopBoosts(
 
     if (!user) return;
 
-    const totalPages = 2;
+    const totalPages = 3;
     const currentPage = Math.max(0, Math.min(page, totalPages - 1));
-    const targetDuration = currentPage === 0 ? 10 : 30;
+    const isPotionPage = currentPage >= totalPages - 1;
+    const targetDuration = !isPotionPage ? (currentPage === 0 ? 10 : 30) : null;
 
-    const boosts = getBoosts(client).filter(
-        (boost) => boost.duration === targetDuration,
-    );
+    const boosts = isPotionPage
+        ? []
+        : getBoosts(client).filter(
+              (boost) => boost.duration === targetDuration,
+          );
     const activeBoosts = getActiveBoosts(user);
 
     await replyOrUpdate(interaction, () => {
@@ -332,7 +375,11 @@ export async function executeShopBoosts(
 
         container.addTextDisplayComponents(
             new TextDisplayBuilder().setContent(
-                `### ${getEmoji(client, EMOJI_POTION)} ${interaction.user.username} • Cửa hàng thuốc (${targetDuration} phút)`,
+                `### ${getEmoji(client, EMOJI_POTION)} ${interaction.user.username} • ${
+                    isPotionPage
+                        ? 'Cửa hàng liều thuốc chống bẫy'
+                        : `Cửa hàng thuốc (${targetDuration} phút)`
+                }`,
             ),
             new TextDisplayBuilder().setContent(headerLines.join('\n')),
         );
@@ -341,36 +388,101 @@ export async function executeShopBoosts(
             new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small),
         );
 
-        for (const boost of boosts) {
-            const emoji = getEmoji(client, boost.emoji);
-            const buyable = user!.gems >= boost.price;
-            const isActive = hasActiveBoost(user, boost.boostId);
+        // ---- 🧪 Potions page (countermeasure items) ----
+        if (isPotionPage) {
+            const potionDefs = [...client.resources.potions.values()];
+            const activeTrap = getActiveTrap(user);
+            const hasTrap = activeTrap !== null;
+            const immune = hasTrapImmunity(user);
 
-            container.addSectionComponents(
-                new SectionBuilder()
-                    .addTextDisplayComponents(
-                        new TextDisplayBuilder().setContent(
-                            [
-                                `### ${emoji} **${boost.name}**`,
-                                boost.description,
-                            ].join('\n'),
+            for (const potion of potionDefs) {
+                const emoji = getEmoji(client, potion.emoji);
+                const price = getPotionPrice(potion.id, user.level);
+                let buyable = user.gems >= price;
+
+                let statusLine = '';
+                if (potion.id === 'milk') {
+                    if (hasTrap) {
+                        statusLine = `Có hiệu ứng ${getEmoji(client, EMOJI_TRAP)} đang hoạt động.`;
+                    } else {
+                        statusLine = 'Không có hiệu ứng đang hoạt động.';
+                        buyable = false;
+                    }
+                } else if (potion.id === 'resist_potion') {
+                    if (immune) {
+                        const mins = Math.ceil(
+                            getImmunityRemainingMs(user) / 60_000,
+                        );
+                        statusLine = `Đang miễn nhiễm (còn ${mins} phút).`;
+                        buyable = false;
+                    } else {
+                        statusLine =
+                            'Ngăn bẫy Choáng và Làm Chậm trong 10 phút.';
+                    }
+                }
+
+                const description =
+                    potion.description + (statusLine ? `\n${statusLine}` : '');
+
+                container.addSectionComponents(
+                    new SectionBuilder()
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder().setContent(
+                                [
+                                    `### ${emoji} **${potion.name}**`,
+                                    description,
+                                    `Giá: ${getEmoji(client, EMOJI_GEM)} **${price}**`,
+                                ].join('\n'),
+                            ),
+                        )
+                        .setButtonAccessory(
+                            new ButtonBuilder()
+                                .setCustomId(`potion:buy:${potion.id}`)
+                                .setEmoji(client.appEmojis.get(EMOJI_GEM) ?? '')
+                                .setLabel(buyable ? `${price}` : 'Mua')
+                                .setStyle(
+                                    buyable
+                                        ? ButtonStyle.Primary
+                                        : ButtonStyle.Secondary,
+                                )
+                                .setDisabled(!buyable),
                         ),
-                    )
-                    .setButtonAccessory(
-                        new ButtonBuilder()
-                            .setCustomId(`boost:buy:${boost.id}`)
-                            .setEmoji(client.appEmojis.get(EMOJI_GEM) ?? '')
-                            .setLabel(
-                                isActive ? 'Đang kích hoạt' : `${boost.price}`,
-                            )
-                            .setStyle(
-                                isActive
-                                    ? ButtonStyle.Success
-                                    : ButtonStyle.Primary,
-                            )
-                            .setDisabled(!buyable || isActive),
-                    ),
-            );
+                );
+            }
+        } else {
+            for (const boost of boosts) {
+                const emoji = getEmoji(client, boost.emoji);
+                const buyable = user!.gems >= boost.price;
+                const isActive = hasActiveBoost(user, boost.boostId);
+
+                container.addSectionComponents(
+                    new SectionBuilder()
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder().setContent(
+                                [
+                                    `### ${emoji} **${boost.name}**`,
+                                    boost.description,
+                                ].join('\n'),
+                            ),
+                        )
+                        .setButtonAccessory(
+                            new ButtonBuilder()
+                                .setCustomId(`boost:buy:${boost.id}`)
+                                .setEmoji(client.appEmojis.get(EMOJI_GEM) ?? '')
+                                .setLabel(
+                                    isActive
+                                        ? 'Đang kích hoạt'
+                                        : `${boost.price}`,
+                                )
+                                .setStyle(
+                                    isActive
+                                        ? ButtonStyle.Success
+                                        : ButtonStyle.Primary,
+                                )
+                                .setDisabled(!buyable || isActive),
+                        ),
+                );
+            }
         }
 
         container.addSeparatorComponents(
@@ -386,11 +498,6 @@ export async function executeShopBoosts(
         container.addActionRowComponents(
             new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
                 new ButtonBuilder()
-                    .setCustomId('shop:menu')
-                    .setLabel('Quay lại')
-                    .setStyle(ButtonStyle.Secondary),
-
-                new ButtonBuilder()
                     .setCustomId(`boost:prev:${currentPage}`)
                     .setLabel('◀')
                     .setStyle(ButtonStyle.Primary)
@@ -401,6 +508,11 @@ export async function executeShopBoosts(
                     .setLabel('▶')
                     .setStyle(ButtonStyle.Primary)
                     .setDisabled(currentPage >= totalPages - 1),
+
+                new ButtonBuilder()
+                    .setCustomId('shop:menu')
+                    .setLabel('Quay lại')
+                    .setStyle(ButtonStyle.Secondary),
             ),
         );
 
@@ -487,11 +599,6 @@ export async function executeShopUpgrades(
         container.addActionRowComponents(
             new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
                 new ButtonBuilder()
-                    .setCustomId('shop:menu')
-                    .setLabel('Quay lại')
-                    .setStyle(ButtonStyle.Secondary),
-
-                new ButtonBuilder()
                     .setCustomId(`upgrade:prev:${result.page}`)
                     .setLabel('◀')
                     .setStyle(ButtonStyle.Primary)
@@ -502,11 +609,200 @@ export async function executeShopUpgrades(
                     .setLabel('▶')
                     .setStyle(ButtonStyle.Primary)
                     .setDisabled(result.page >= result.totalPages - 1),
+
+                new ButtonBuilder()
+                    .setCustomId('shop:menu')
+                    .setLabel('Quay lại')
+                    .setStyle(ButtonStyle.Secondary),
             ),
         );
 
         return container;
     });
+}
+
+// ============================================
+// BACKPACK SHOP
+// ============================================
+
+export async function executeShopBackpacks(
+    client: Parameters<Command['run']>[0],
+    interaction: Parameters<Command['run']>[1],
+    page = 0,
+) {
+    const user = await getUserOrReply(client, interaction);
+
+    if (!user) return;
+
+    const biome = client.resources.biomes.get(user.biome);
+    const biomeName = biome?.name ?? user.biome;
+
+    const result = getBackpackBiomePage(client, user, page);
+    const nextUnlock = getNextBackpackUnlock(client, user);
+
+    await replyOrUpdate(interaction, () => {
+        const container = new ContainerBuilder().setAccentColor(
+            resolveColor(user!.color as ColorResolvable),
+        );
+
+        container.addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(
+                `### ${getEmoji(client, EMOJI_BACKPACK)} ${interaction.user.username} • Cửa hàng ba lô`,
+            ),
+
+            new TextDisplayBuilder().setContent(
+                [
+                    `${getEmoji(client, EMOJI_MONEY)} Số dư: **$${user!.balance.toLocaleString()}**`,
+                    `${getEmoji(client, biome?.emoji ?? '')} Vùng hiện tại: **${biomeName}**`,
+                ].join('\n'),
+            ),
+        );
+
+        container.addSeparatorComponents(
+            new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small),
+        );
+
+        if (!result.biome) {
+            container.addTextDisplayComponents(
+                new TextDisplayBuilder().setContent(
+                    '*Chưa có vùng ba lô nào được mở khoá.*',
+                ),
+            );
+        } else {
+            const pageBiome =
+                client.resources.biomes.get(result.biome.id) ?? result.biome;
+
+            container.addTextDisplayComponents(
+                new TextDisplayBuilder().setContent(
+                    `### ${getEmoji(client, pageBiome.emoji)} **${pageBiome.name}**`,
+                ),
+            );
+
+            for (const backpack of result.backpacks) {
+                const emoji = getEmoji(client, backpack.emoji);
+                const owned = isBackpackOwned(user, backpack.id);
+                const equipped =
+                    getEquippedBackpack(user)?.backpackId === backpack.id;
+
+                const previousTier = result.backpacks.find(
+                    (b) => b.tier === backpack.tier - 1,
+                );
+                const locked =
+                    !!previousTier && !isBackpackOwned(user, previousTier.id);
+
+                const buyable =
+                    !owned && !locked && user!.balance >= backpack.price;
+
+                const status = equipped
+                    ? `${getEmoji(client, EMOJI_CHECK)} Đã sở hữu • Đang trang bị`
+                    : owned
+                      ? `${getEmoji(client, EMOJI_CHECK)} Đã sở hữu`
+                      : 'Chưa sở hữu';
+
+                let button;
+                if (owned) {
+                    button = new ButtonBuilder()
+                        .setCustomId(
+                            `backpack:owned:${backpack.id}:${result.page}`,
+                        )
+                        .setLabel(equipped ? 'Đang trang bị' : 'Đã sở hữu')
+                        .setStyle(ButtonStyle.Success)
+                        .setDisabled(true);
+                } else {
+                    button = new ButtonBuilder()
+                        .setCustomId(
+                            `backpack:buy:${backpack.id}:${result.page}`,
+                        )
+                        .setLabel(`Mua $${backpack.price.toLocaleString()}`)
+                        .setStyle(
+                            buyable
+                                ? ButtonStyle.Primary
+                                : ButtonStyle.Secondary,
+                        )
+                        .setDisabled(!buyable);
+                }
+
+                const lines = [
+                    `### ${emoji} **Ba lô ${toRoman(backpack.tier)}**`,
+                    `*${pageBiome.name} • Tầng ${backpack.tier}/4*`,
+                    `${getEmoji(client, EMOJI_CLOCK)} Giảm thời gian chờ: **-${backpack.tier * 0.25}s**`,
+                    `Giá: **$${backpack.price.toLocaleString()}**`,
+                    status,
+                ];
+
+                container.addSectionComponents(
+                    new SectionBuilder()
+                        .addTextDisplayComponents(
+                            new TextDisplayBuilder().setContent(
+                                lines.filter(Boolean).join('\n'),
+                            ),
+                        )
+                        .setButtonAccessory(button),
+                );
+            }
+        }
+
+        container.addSeparatorComponents(
+            new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small),
+        );
+
+        if (nextUnlock) {
+            const nextName = nextUnlock.biome.name;
+            const nextEmoji = getEmoji(client, nextUnlock.biome.emoji);
+
+            const requirement = nextUnlock.levelLocked
+                ? `Cấp độ mở khoá tiếp theo: Lv.${nextUnlock.biome.unlock_level}`
+                : `Mua đủ 4 ba lô vùng trước để mở ${nextEmoji} ${nextName}`;
+
+            container.addTextDisplayComponents(
+                new TextDisplayBuilder().setContent(`*${requirement}*`),
+            );
+        } else {
+            container.addTextDisplayComponents(
+                new TextDisplayBuilder().setContent(
+                    '*Đã mở khoá toàn bộ ba lô*',
+                ),
+            );
+        }
+
+        container.addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(
+                `Trang ${result.page + 1}/${result.totalPages}`,
+            ),
+        );
+
+        container.addSeparatorComponents(
+            new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small),
+        );
+
+        container.addActionRowComponents(
+            new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`backpack:prev:${result.page}`)
+                    .setLabel('◀')
+                    .setStyle(ButtonStyle.Primary)
+                    .setDisabled(result.page === 0),
+
+                new ButtonBuilder()
+                    .setCustomId(`backpack:next:${result.page}`)
+                    .setLabel('▶')
+                    .setStyle(ButtonStyle.Primary)
+                    .setDisabled(result.page >= result.totalPages - 1),
+
+                new ButtonBuilder()
+                    .setCustomId('shop:menu')
+                    .setLabel('Quay lại')
+                    .setStyle(ButtonStyle.Secondary),
+            ),
+        );
+
+        return container;
+    });
+}
+
+function toRoman(tier: number): string {
+    const numerals = ['I', 'II', 'III', 'IV', 'V'];
+    return numerals[tier - 1] ?? String(tier);
 }
 
 export async function executeShop(

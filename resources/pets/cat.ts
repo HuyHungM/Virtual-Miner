@@ -5,7 +5,7 @@ export default {
     name: 'Cat',
     emoji: '1544019315689390090',
     rarity: 'uncommon',
-    description: 'Mèo tinh nghịch may mắn, thích rương kho báu.',
+    description: 'Nhỏ nhắn, nhanh nhẹn và bí ẩn.',
     baseStats: {
         chest_chance: 0.03,
         fortune: 0.04,

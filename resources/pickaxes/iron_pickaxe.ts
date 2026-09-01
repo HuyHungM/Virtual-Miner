@@ -6,7 +6,7 @@ export default {
     biomes: ['plains'],
     price: 200000,
     unlock_level: 1,
-    description: 'Thời kì đồ sắt. Tăng kinh nghiệm nhận được.',
+    description: 'Thiết khí sơ thành, vững bước trên hành trình khai phá.',
     emoji: '1543192470802931722',
     buff: {
         effective: 0.5,

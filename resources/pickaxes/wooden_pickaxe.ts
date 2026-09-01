@@ -6,7 +6,7 @@ export default {
     biomes: ['plains'],
     price: 0,
     unlock_level: 1,
-    description: 'Khởi đầu của tất cả.',
+    description: 'Mộc khí sơ khai, khởi nguyên của hành trình khai phá.',
     emoji: '1543190102904279110',
     buff: {
         effective: 0,

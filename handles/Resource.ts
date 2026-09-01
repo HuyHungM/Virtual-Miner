@@ -8,6 +8,10 @@ const Resource = {
     Ores: 'ores',
     Pickaxes: 'pickaxes',
     Pets: 'pets',
+    Charms: 'charms',
+    Potions: 'potions',
+    Backpacks: 'backpacks',
+    Enemies: 'enemies',
 } as const;
 
 export default async (client: Client) => {
@@ -44,6 +48,22 @@ export default async (client: Client) => {
                 case Resource.Pets:
                     client.resources.pets.set(data.id, data);
                     console.log(`[PET] Đã tải ${data.id}`);
+                    break;
+                case Resource.Charms:
+                    client.resources.charms.set(data.id, data);
+                    console.log(`[CHARM] Đã tải ${data.id}`);
+                    break;
+                case Resource.Potions:
+                    client.resources.potions.set(data.id, data);
+                    console.log(`[POTION] Đã tải ${data.id}`);
+                    break;
+                case Resource.Backpacks:
+                    client.resources.backpacks.set(data.id, data);
+                    console.log(`[BACKPACK] Đã tải ${data.id}`);
+                    break;
+                case Resource.Enemies:
+                    client.resources.enemies.set(data.id, data);
+                    console.log(`[ENEMY] Đã tải ${data.id}`);
                     break;
             }
         }

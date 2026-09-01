@@ -5,7 +5,7 @@ export default {
     name: 'Pig',
     emoji: '1544019296051666997',
     rarity: 'common',
-    description: 'Heo con dễ thương, thích tìm kiếm kho báu.',
+    description: 'Mang theo chút may mắn trên mọi hành trình.',
     baseStats: {
         chest_chance: 0.02,
         fortune: 0.02,

@@ -6,7 +6,8 @@ export default {
     biomes: ['volcano_core'],
     price: 5_500_000_000,
     unlock_level: 250,
-    description: 'Netherite tối tăm, sức mạnh khủng khiếp.',
+    description:
+        'Từ bóng tối và địa hỏa, một thứ kim loại bất diệt thành hình.',
     emoji: '1543192466650570763',
     buff: {
         effective: 2.3,

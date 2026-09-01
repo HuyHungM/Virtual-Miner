@@ -5,7 +5,7 @@ export default {
     boostId: 'fortune',
     name: 'Thuốc may mắn 10p',
     description: 'Tăng 50% may mắn trong 10 phút',
-    emoji: '1543999999999999102',
+    emoji: '1544344248067817574',
     price: 4,
     duration: 10,
     stat: 'fortune',

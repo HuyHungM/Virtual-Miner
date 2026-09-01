@@ -5,7 +5,7 @@ export default {
     name: 'Zombie',
     emoji: '1544019276107747368',
     rarity: 'rare',
-    description: 'Zombie kiên trì, không bao giờ bỏ cuộc.',
+    description: 'Zombie - Bóng hình mục rữa giữa màn đêm.',
     baseStats: {
         effective: 0.05,
         sell_price: 0.05,

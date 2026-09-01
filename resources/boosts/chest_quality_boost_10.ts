@@ -5,7 +5,7 @@ export default {
     boostId: 'chest_quality',
     name: 'Thuốc chất lượng rương 10p',
     description: 'Tăng 50% chất lượng rương trong 10 phút',
-    emoji: '1543999999999999104',
+    emoji: '1544344250190143588',
     price: 5,
     duration: 10,
     stat: 'chest_quality',

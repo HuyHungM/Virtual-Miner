@@ -6,7 +6,7 @@ export default {
     biomes: ['gem_highlands'],
     price: 900000000,
     unlock_level: 150,
-    description: 'Kim cương kiêu hãnh, đỉnh cao của cao nguyên ngọc.',
+    description: 'Tinh thể lam quang, lưu dấu kẻ chạm đến đỉnh cao',
     emoji: '1543189932074336307',
     buff: {
         effective: 1.8,

@@ -131,6 +131,27 @@ export async function addActiveBoost(
     );
 }
 
+export async function removeActiveBoost(
+    userId: string,
+    boostId: string,
+    session?: ClientSession,
+) {
+    return User.findOneAndUpdate(
+        { userId },
+        {
+            $pull: {
+                active_boosts: {
+                    boostId,
+                },
+            },
+        },
+        {
+            returnDocument: 'after',
+            session,
+        },
+    );
+}
+
 export async function incrementUpgrade(
     userId: string,
     stat: string,

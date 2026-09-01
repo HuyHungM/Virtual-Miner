@@ -22,8 +22,10 @@ import {
     EMOJI_MONEY,
     EMOJI_PICKAXE,
     EMOJI_INVENTORY,
+    EMOJI_ENDERCHEST,
 } from '../services/emoji/EmojiService';
 import { getPetBonusForStat } from '../services/pet/PetStatService';
+import { getCharmBonusForStat } from '../services/charm/CharmService';
 
 function createButtons(client: Parameters<Command['run']>[0]) {
     const againButton = new ButtonBuilder()
@@ -54,20 +56,7 @@ export default {
             return;
         }
 
-        const stats = getUpgradeStats(user);
-
-        const pickaxe = client.resources.pickaxes.get(user.pickaxe);
-
-        const petSellBonus = getPetBonusForStat(client, user, 'sell_price');
-
-        const sellMultiplier =
-            stats.sell_price * (1 + (pickaxe?.buff?.sell_price ?? 0) + petSellBonus);
-
-        const result = await sellAll(
-            user.userId,
-            client.resources.ores,
-            sellMultiplier,
-        );
+        const result = await sellAll(client, user);
 
         if (!result) {
             await interaction.reply({
@@ -109,6 +98,7 @@ export default {
                         `${getEmoji(client, EMOJI_PICKAXE)} Số lượng: **${result.totalQuantity.toLocaleString()}**`,
                         '',
                         `${moneyEmoji} Nhận được: **+$${result.totalValue.toLocaleString()}**`,
+                        `${getEmoji(client, EMOJI_ENDERCHEST)} Tổng tiền: **$${(user.balance + result.totalValue).toLocaleString()}**`,
                     ].join('\n'),
                 ),
             );

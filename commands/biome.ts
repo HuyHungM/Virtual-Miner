@@ -145,6 +145,10 @@ export async function executeBiome(
             );
         }
 
+        container.addSeparatorComponents(
+            new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small),
+        );
+
         container.addActionRowComponents(
             new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
                 new ButtonBuilder()

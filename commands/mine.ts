@@ -16,6 +16,7 @@ import type { Command } from '../types/Command';
 
 import { mine } from '../services/mining/MiningService';
 import { getUser } from '../services/user/UserService';
+import { computePetStatBonus } from '../services/pet/PetService';
 import {
     getEmoji,
     setButtonEmoji,
@@ -26,7 +27,26 @@ import {
     EMOJI_PET,
     EMOJI_PICKAXE,
     EMOJI_LEVEL_UP,
+    EMOJI_TRAP,
+    EMOJI_STUN,
+    EMOJI_SLOW,
+    EMOJI_PIGLIN,
+    EMOJI_MILK,
+    EMOJI_COMBAT,
+    EMOJI_HP,
+    EMOJI_ATK,
+    EMOJI_DEF,
 } from '../services/emoji/EmojiService';
+
+function formatDuration(ms: number): string {
+    const totalSeconds = Math.max(1, Math.ceil(ms / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    if (minutes <= 0) return `${seconds}s`;
+    if (seconds === 0) return `${minutes}m`;
+    return `${minutes}m ${seconds}s`;
+}
 
 function createButtons(client: Client, pickaxeEmoji: string) {
     const againButton = new ButtonBuilder()
@@ -129,6 +149,30 @@ async function executeMine(client: Client, interaction: any) {
 
                 return;
             }
+
+            case 'STUNNED': {
+                const remaining = formatDuration(result.remainingMs);
+
+                await interaction.reply({
+                    content:
+                        `${getEmoji(client, EMOJI_STUN)} Bạn đang bị choáng và không thể đào trong ${remaining}.\n` +
+                        `Dùng ${getEmoji(client, EMOJI_MILK)} **Sữa** để gỡ bỏ hiệu ứng ngay lập tức.`,
+                    flags: MessageFlags.Ephemeral,
+                });
+
+                return;
+            }
+
+            case 'MINING_COOLDOWN': {
+                const remaining = formatDuration(result.remainingMs);
+
+                await interaction.reply({
+                    content: `Bạn cần chờ **${remaining}** nữa trước khi đào tiếp.`,
+                    flags: MessageFlags.Ephemeral,
+                });
+
+                return;
+            }
         }
 
         return;
@@ -159,11 +203,152 @@ async function executeMine(client: Client, interaction: any) {
             );
         } else if (result.chest.reward_type === 'xp') {
             description.push(
-                `${chestE} **Rương kho báu!**\nXP: **+${result.chest.xp.toLocaleString()}**`,
+                `${chestE} **Rương kho báu!**\n*+${result.chest.xp.toLocaleString()} XP*`,
             );
         } else if (result.chest.reward_type === 'gems') {
             description.push(
                 `${chestE} **Rương kho báu!**\n${getEmoji(client, EMOJI_GEM)} Gem: **+${result.chest.gems}**`,
+            );
+        }
+
+        // Pet drop
+        if (result.petDrop) {
+            const petDropEmoji = getEmoji(client, result.petDrop.emoji);
+
+            if (result.petDrop.isDuplicate) {
+                description.push(
+                    [
+                        `Nhận được ${petDropEmoji} **${result.petDrop.name}** (đã sở hữu)`,
+                        `+${result.petDrop.xpAwarded} Pet XP cho thú cưng hiện tại`,
+                    ].join('\n'),
+                );
+            } else {
+                description.push(
+                    [
+                        `Bạn nhận được ${petDropEmoji} **${result.petDrop.name}**!`,
+                    ].join('\n'),
+                );
+            }
+        }
+    }
+
+    // Trap feedback (trapped chest)
+    const trap = result.trap;
+
+    if (trap && trap.kind === 'stun' && trap.trap?.durationMinutes) {
+        description.push(
+            [
+                `${getEmoji(client, EMOJI_TRAP)} **Rương bẫy!**`,
+                `Bạn vướng phải **Bẫy Choáng** và không thể đào trong ${trap.trap.durationMinutes} phút.`,
+                `${getEmoji(client, EMOJI_MILK)} Dùng **Sữa** để gỡ bỏ hiệu ứng ngay.`,
+            ].join('\n'),
+        );
+    } else if (trap && trap.kind === 'mining_slow' && trap.trap?.slowPercent) {
+        const pct = Math.round(trap.trap.slowPercent * 100);
+        description.push(
+            [
+                `${getEmoji(client, EMOJI_TRAP)} **Rương bẫy!**`,
+                `Bạn vướng phải **Bẫy Làm Chậm** — tốc độ đào giảm ${pct}%.`,
+                `${getEmoji(client, EMOJI_MILK)} Dùng **Sữa** để gỡ bỏ hiệu ứng ngay.`,
+            ].join('\n'),
+        );
+    } else if (trap && trap.kind === 'piglin_robbery') {
+        const combat = trap.combat;
+
+        if (combat) {
+            const petDef = user.equippedPet
+                ? client.resources.pets.get(user.equippedPet)
+                : undefined;
+            const petEmoji = petDef
+                ? getEmoji(client, petDef.emoji)
+                : getEmoji(client, EMOJI_PET);
+            const petName = petDef?.name ?? 'Thú cưng';
+            const petLevel =
+                user.pets?.find((p: any) => p.petId === user.equippedPet)
+                    ?.level ?? 1;
+            const piglinDef = client.resources.enemies.get('piglin');
+            const piglinEmoji = piglinDef
+                ? getEmoji(client, piglinDef.emoji)
+                : getEmoji(client, EMOJI_PIGLIN);
+            const piglinName = piglinDef?.name ?? 'Piglin';
+
+            const card = [
+                `${getEmoji(client, EMOJI_COMBAT)} **Rương bẫy!**`,
+                `Một con **${piglinName}** xuất hiện!`,
+                `${petEmoji} __**${petName}**__`,
+                `${getEmoji(client, EMOJI_HP)} HP: ${Math.max(
+                    0,
+                    combat.petRemainingHealth,
+                )} ${getEmoji(client, EMOJI_ATK)} ATK: ${
+                    petDef?.combat_stats
+                        ? Math.round(
+                              computePetStatBonus(
+                                  petDef.combat_stats.attack,
+                                  petLevel,
+                              ),
+                          )
+                        : 0
+                } ${getEmoji(client, EMOJI_DEF)} DEF: ${
+                    petDef?.combat_stats
+                        ? Math.round(
+                              computePetStatBonus(
+                                  petDef.combat_stats.defense,
+                                  petLevel,
+                              ),
+                          )
+                        : 0
+                }`,
+                `vs.`,
+                `${piglinEmoji} __**${piglinName}**__`,
+                `${getEmoji(client, EMOJI_HP)} HP: ${Math.max(
+                    0,
+                    combat.enemyRemainingHealth,
+                )} ${getEmoji(client, EMOJI_ATK)} ATK: ${
+                    piglinDef?.combat_stats?.attack ?? 0
+                } ${getEmoji(client, EMOJI_DEF)} DEF: ${
+                    piglinDef?.combat_stats?.defense ?? 0
+                }`,
+            ].join('\n');
+
+            if (combat.winner === 'pet') {
+                description.push(
+                    [
+                        card,
+                        '',
+                        `${getEmoji(client, EMOJI_COMBAT)} **Chiến thắng!**`,
+                        `Thú cưng của bạn đã đánh bại ${piglinName} trong ${combat.turns} lượt.`,
+                        `Piglin không lấy được chút quặng nào.`,
+                    ].join('\n'),
+                );
+            } else {
+                description.push(
+                    [
+                        card,
+                        '',
+                        `${getEmoji(client, EMOJI_MILK)} **Thất bại!**`,
+                        `Thú cưng của bạn đã bị đánh bại và ${piglinName} đã lấy trộm ${Math.round(
+                            (trap.stolenPercent ?? 0) * 100,
+                        )}% quặng của bạn.`,
+                    ].join('\n'),
+                );
+            }
+        } else if (trap.defended) {
+            description.push(
+                [
+                    `${getEmoji(client, EMOJI_COMBAT)} **Rương bẫy!**`,
+                    `Một con **Piglin** xuất hiện, nhưng thú cưng của bạn đã đánh bại nó!`,
+                    `Quặng của bạn an toàn.`,
+                ].join('\n'),
+            );
+        } else {
+            description.push(
+                [
+                    `${getEmoji(client, EMOJI_PIGLIN)} **Rương bẫy!**`,
+                    `Một con **Piglin** xuất hiện và đã lấy trộm ${Math.round(
+                        (trap.stolenPercent ?? 0) * 100,
+                    )}% quặng của bạn!`,
+                    `Trang bị thú cưng chiến đấu để chống lại Piglin.`,
+                ].join('\n'),
             );
         }
     }
@@ -198,28 +383,6 @@ async function executeMine(client: Client, interaction: any) {
         } else if (result.miningXp > 0) {
             description.push(
                 `${petEmoji} **${petDef?.name ?? 'Pet'}:** *+${result.miningXp.toLocaleString()} Pet XP*`,
-            );
-        }
-    }
-
-    // Pet drop
-    if (result.petDrop) {
-        const petDropEmoji = getEmoji(client, result.petDrop.emoji);
-
-        if (result.petDrop.isDuplicate) {
-            description.push(
-                [
-                    `${petDropEmoji} **Rương kho báu!**`,
-                    `Nhận được **${result.petDrop.name}** (đã sở hữu)`,
-                    `+${result.petDrop.xpAwarded} Pet XP cho thú cưng hiện tại`,
-                ].join('\n'),
-            );
-        } else {
-            description.push(
-                [
-                    `${petDropEmoji} **Rương kho báu!**`,
-                    `Bạn nhận được **${result.petDrop.name}**!`,
-                ].join('\n'),
             );
         }
     }

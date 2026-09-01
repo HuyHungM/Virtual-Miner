@@ -6,7 +6,7 @@ export default {
     biomes: ['legendary_abyss'],
     price: 26_000_000_000,
     unlock_level: 500,
-    description: 'Sunite rực sáng như mặt trời, sức mạnh vô song.',
+    description: 'Ánh dương bị chôn vùi, nay thức tỉnh từ lòng vực sâu.',
     emoji: '1543199125011435571',
     buff: {
         effective: 2.9,

@@ -6,7 +6,7 @@ export default {
     biomes: ['gem_highlands'],
     price: 90000000,
     unlock_level: 150,
-    description: 'Ngọc lục bảo đậm đà, sức mạnh mạnh mẽ hơn.',
+    description: 'Sắc lục huyền bí, dẫn lối đến những mạch ngọc ẩn mình.',
     emoji: '1543198576581283850',
     buff: {
         effective: 1.3,

@@ -5,7 +5,7 @@ export default {
     boostId: 'chest_chance',
     name: 'Thuốc rương kho báu',
     description: 'Tăng 50% tỷ lệ tìm rương trong 30 phút',
-    emoji: '1543999999999999007',
+    emoji: '1544344252320981092',
     price: 10,
     duration: 30,
     stat: 'chest_chance',

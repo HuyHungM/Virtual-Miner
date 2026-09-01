@@ -6,7 +6,7 @@ export default {
     biomes: ['volcano_core'],
     price: 1_500_000_000,
     unlock_level: 250,
-    description: 'Titan bền bỉ, chịu được nhiệt độ lòng núi lửa.',
+    description: 'Địa hỏa nung tôi, nhưng chẳng thể khuất phục.',
     emoji: '1543198563276951674',
     buff: {
         effective: 1.9,

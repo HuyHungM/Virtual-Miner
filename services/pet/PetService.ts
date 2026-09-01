@@ -1,5 +1,4 @@
 import type { ClientSession } from 'mongoose';
-import type { Client } from 'discord.js';
 
 import User from '../../models/User';
 import {
@@ -43,10 +42,7 @@ export function calculatePetLevel(
     return { level: currentLevel, xp: currentXp };
 }
 
-export function computePetStatBonus(
-    baseStat: number,
-    level: number,
-): number {
+export function computePetStatBonus(baseStat: number, level: number): number {
     return baseStat * (1 + (level - 1) * PET_LEVEL_SCALE_FACTOR);
 }
 
@@ -78,9 +74,7 @@ export async function addPetXp(
         newLevel: result.level,
         xp: result.xp,
         xpRequired:
-            result.level >= PET_MAX_LEVEL
-                ? 0
-                : getRequiredPetXp(result.level),
+            result.level >= PET_MAX_LEVEL ? 0 : getRequiredPetXp(result.level),
         levelsGained: result.level - oldLevel,
     };
 }
@@ -125,10 +119,7 @@ export async function equipPet(
     );
 }
 
-export async function unequipPet(
-    userId: string,
-    session?: ClientSession,
-) {
+export async function unequipPet(userId: string, session?: ClientSession) {
     return User.findOneAndUpdate(
         { userId },
         { $set: { equippedPet: null } },
@@ -136,10 +127,7 @@ export async function unequipPet(
     );
 }
 
-export function getOwnedPet(
-    user: any,
-    petId: string,
-): OwnedPet | undefined {
+export function getOwnedPet(user: any, petId: string): OwnedPet | undefined {
     return user.pets?.find((p: OwnedPet) => p.petId === petId);
 }
 
@@ -149,7 +137,5 @@ export function isPetOwned(user: any, petId: string): boolean {
 
 export function getEquippedPet(user: any): OwnedPet | undefined {
     if (!user.equippedPet) return undefined;
-    return user.pets?.find(
-        (p: OwnedPet) => p.petId === user.equippedPet,
-    );
+    return user.pets?.find((p: OwnedPet) => p.petId === user.equippedPet);
 }

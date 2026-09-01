@@ -7,10 +7,7 @@ import { calculateMiningAmount } from './EffectiveService';
 import { calculateOreXp } from './XpService';
 import { rollChest } from './ChestService';
 import { getUpgradeStats, type UpgradeStats } from '../upgrade/UpgradeService';
-import {
-    getActiveBoosts,
-    getBoostByGroup,
-} from '../shop/BoostShopService';
+import { getActiveBoosts, getBoostByGroup } from '../shop/BoostShopService';
 
 import { addItems } from '../inventory/InventoryService';
 
@@ -23,11 +20,24 @@ import { addPetXp, type PetLevelUpResult } from '../pet/PetService';
 import { rollPetReward } from '../pet/PetRewardService';
 import type { PetDropResult } from '../../types/Pet';
 
+import { getCharmStatBonus, addCharmCopies } from '../charm/CharmService';
+import { rollCharmReward } from '../charm/CharmRewardService';
+import type { CharmDropResult } from '../../types/Charm';
+
 import type { Ore } from '../../types/Ore';
 import type { Biome } from '../../types/Biome';
 import type { Pickaxe } from '../../types/Pickaxe';
 import type { ChestResult } from './ChestService';
 import { updateBalance, updateGems, addPet } from '../user/UserService';
+import type { TrapOutcome } from '../chest/ChestTrapService';
+import { resolveChest } from '../chest/ChestTrapService';
+import {
+    isStunned,
+    getStunRemainingMs,
+    getMiningSlowModifier,
+    setLastMineAt,
+} from '../chest/TrapService';
+import { calcFinalCooldown } from '../shop/BackpackShopService';
 
 function getBiomeTier(client: Client, biomeId: string): number {
     const ordered = [...client.resources.biomes.values()].sort(
@@ -52,6 +62,16 @@ export type MiningFailure =
     | {
           success: false;
           reason: 'NO_ORE';
+      }
+    | {
+          success: false;
+          reason: 'STUNNED';
+          remainingMs: number;
+      }
+    | {
+          success: false;
+          reason: 'MINING_COOLDOWN';
+          remainingMs: number;
       };
 
 export interface MiningOreResult {
@@ -72,6 +92,8 @@ export interface MiningSuccess {
 
     chest: ChestResult;
 
+    trap: TrapOutcome | null;
+
     gems: number;
 
     totalXp: number;
@@ -81,6 +103,8 @@ export interface MiningSuccess {
     petLevelUp: PetLevelUpResult | null;
 
     petDrop: PetDropResult | null;
+
+    charmDrop: CharmDropResult | null;
 }
 
 export type MiningResult = MiningFailure | MiningSuccess;
@@ -103,6 +127,8 @@ function applyExtraStats(
 
     const petBonuses = getPetBonusStats(client, user);
 
+    const charmBonuses = getCharmStatBonus(client, user);
+
     for (const stat of EXTRA_MINING_STATS) {
         const buffVal = pickaxe.buff?.[stat] ?? 0;
 
@@ -118,7 +144,9 @@ function applyExtraStats(
 
         const petBonus = petBonuses[stat] ?? 0;
 
-        stats[stat] *= 1 + buffVal + boostBonus + petBonus;
+        const charmBonus = charmBonuses[stat] ?? 0;
+
+        stats[stat] *= 1 + buffVal + boostBonus + petBonus + charmBonus;
     }
 }
 
@@ -131,6 +159,37 @@ export async function mine(client: Client, user: any): Promise<MiningResult> {
     }
 
     const { biome, pickaxe } = validation;
+
+    // Stun check — a stunned player cannot mine at all.
+    if (isStunned(user)) {
+        return {
+            success: false,
+            reason: 'STUNNED',
+            remainingMs: getStunRemainingMs(user),
+        };
+    }
+
+    // Mining cooldown (centralized: biome base - backpack reduction, floored,
+    // then multiplied by any Mining Slow; built on the trap system).
+    const slowModifier = getMiningSlowModifier(user);
+    const effectiveCooldown = calcFinalCooldown(
+        client,
+        user,
+        biome.id,
+        slowModifier,
+    );
+    if (user.lastMineAt) {
+        const elapsed = Date.now() - new Date(user.lastMineAt).getTime();
+        if (elapsed < effectiveCooldown * 1000) {
+            return {
+                success: false,
+                reason: 'MINING_COOLDOWN',
+                remainingMs: Math.ceil(
+                    effectiveCooldown * 1000 - elapsed,
+                ),
+            };
+        }
+    }
 
     // Biome tier (0 = plains .. 4 = abyss)
     const biomeTier = getBiomeTier(client, biome.id);
@@ -204,19 +263,26 @@ export async function mine(client: Client, user: any): Promise<MiningResult> {
     }
 
     // Chest
-    const chest = rollChest(
-        stats.chest_chance,
-        stats.chest_quality,
-        biomeTier,
-    );
+    const chest = rollChest(stats.chest_chance, stats.chest_quality, biomeTier);
 
-    const totalXp = miningXp + (chest.opened ? chest.xp : 0);
+    // Actual chest outcome (normal / trapped trap) is resolved inside the
+    // transaction so trap persistence and any ore removal are atomic.
+    let trap: TrapOutcome | null = null;
+    let grantedChest = false;
+    let totalXp = miningXp;
 
     // Pet drop (only when chest opens, roll separately)
     let petDrop: PetDropResult | null = null;
 
     if (chest.opened) {
         petDrop = rollPetReward(client, user);
+    }
+
+    // Charm drop (only when chest opens, roll separately)
+    let charmDrop: CharmDropResult | null = null;
+
+    if (chest.opened) {
+        charmDrop = rollCharmReward(client, user);
     }
 
     /*
@@ -252,18 +318,35 @@ export async function mine(client: Client, user: any): Promise<MiningResult> {
                 session,
             );
 
+            // Resolve chest (normal vs trapped). Only grants checks below when
+            // the chest is truly a normal (or immunity-prevented) chest.
+            if (chest.opened) {
+                trap = await resolveChest(
+                    client,
+                    user.userId,
+                    user.level,
+                    session,
+                );
+
+                grantedChest = trap.kind === 'normal';
+                totalXp = miningXp + (grantedChest ? chest.xp : 0);
+            }
+
             // Chest money
-            if (chest.opened && chest.money > 0) {
+            if (grantedChest && chest.money > 0) {
                 await updateBalance(user.userId, chest.money, session);
             }
 
             // Chest gems
-            if (chest.opened && chest.gems > 0) {
+            if (grantedChest && chest.gems > 0) {
                 await updateGems(user.userId, chest.gems, session);
             }
 
             // Xp + level up
             levelUp = await addXp(user.userId, totalXp, session);
+
+            // Record the mine time for cooldown bookkeeping.
+            await setLastMineAt(user.userId, session);
 
             // Pet XP (only equipped pet)
             if (user.equippedPet && miningXp > 0) {
@@ -273,6 +356,17 @@ export async function mine(client: Client, user: any): Promise<MiningResult> {
             // Pet drop from chest
             if (petDrop) {
                 await addPet(user.userId, petDrop.petId, session);
+            }
+
+            // Charm drop from chest
+            if (charmDrop) {
+                await addCharmCopies(
+                    client,
+                    user.userId,
+                    charmDrop.charmId,
+                    1,
+                    session,
+                );
             }
         });
 
@@ -288,7 +382,9 @@ export async function mine(client: Client, user: any): Promise<MiningResult> {
 
             chest,
 
-            gems: chest.gems,
+            trap,
+
+            gems: grantedChest ? chest.gems : 0,
 
             totalXp,
 
@@ -297,6 +393,8 @@ export async function mine(client: Client, user: any): Promise<MiningResult> {
             petLevelUp,
 
             petDrop,
+
+            charmDrop,
         };
     } finally {
         await session.endSession();

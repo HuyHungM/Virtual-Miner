@@ -22,10 +22,12 @@ import {
 } from '../services/pet/PetService';
 import {
     getEmoji,
-    setButtonEmoji,
     EMOJI_PET,
-    EMOJI_ARROW_LEFT,
-    EMOJI_ARROW_RIGHT,
+    EMOJI_COMBAT,
+    EMOJI_HP,
+    EMOJI_ATK,
+    EMOJI_DEF,
+    EMOJI_CHECK,
 } from '../services/emoji/EmojiService';
 import { PET_MAX_LEVEL } from '../services/balance/BalanceConfig';
 
@@ -67,13 +69,6 @@ function formatPercent(value: number): string {
     return `${Math.round(value * 100)}%`;
 }
 
-function buildXpBar(percent: number, width = 10): string {
-    const clamped = Math.max(0, Math.min(100, percent));
-    const filled = Math.round((clamped / 100) * width);
-    const empty = width - filled;
-    return '█'.repeat(filled) + '░'.repeat(empty);
-}
-
 function petEmoji(client: ClientRef, def: Pet): string {
     return getEmoji(client, def.emoji) || getEmoji(client, EMOJI_PET);
 }
@@ -102,6 +97,32 @@ function buildStatLines(def: Pet, level: number): string[] {
     return lines.length ? lines : ['Không có hiệu ứng'];
 }
 
+function combatBadge(client: ClientRef, def: Pet): string {
+    return def.combat === true
+        ? ` • ${getEmoji(client, EMOJI_COMBAT)} Chiến đấu`
+        : '';
+}
+
+function buildCombatLines(
+    client: ClientRef,
+    def: Pet,
+    level: number,
+): string[] {
+    if (def.combat !== true || !def.combat_stats) return [];
+
+    return [
+        `${getEmoji(client, EMOJI_COMBAT)} **Chiến đấu**`,
+        `${getEmoji(client, EMOJI_HP)} HP: **${Math.floor(
+            computePetStatBonus(def.combat_stats.health, level),
+        )}**`,
+        `${getEmoji(client, EMOJI_ATK)} ATK: **${Math.round(
+            computePetStatBonus(def.combat_stats.attack, level),
+        )} **${getEmoji(client, EMOJI_DEF)} DEF: **${Math.round(
+            computePetStatBonus(def.combat_stats.defense, level),
+        )}**`,
+    ];
+}
+
 function pageInfo(page: number, totalPages: number): string {
     return `**Trang ${page + 1}/${totalPages}**`;
 }
@@ -123,26 +144,29 @@ function navRow(
     page: number,
     totalPages: number,
 ): ActionRowBuilder<MessageActionRowComponentBuilder> {
+    const backButton = new ButtonBuilder()
+        .setCustomId('menu:back')
+        .setLabel('Quay lại')
+        .setStyle(ButtonStyle.Secondary);
+
     const prevButton = new ButtonBuilder()
         .setCustomId(`pet:prev:${activeTab}:${page}`)
-        .setLabel('Trước')
-        .setStyle(ButtonStyle.Secondary)
+        .setLabel('◀')
+        .setStyle(ButtonStyle.Primary)
         .setDisabled(page === 0);
 
     const nextButton = new ButtonBuilder()
         .setCustomId(`pet:next:${activeTab}:${page}`)
-        .setLabel('Sau')
+        .setLabel('▶')
         .setStyle(ButtonStyle.Primary)
         .setDisabled(page >= totalPages - 1);
-
-    setButtonEmoji(prevButton, client, EMOJI_ARROW_LEFT);
-    setButtonEmoji(nextButton, client, EMOJI_ARROW_RIGHT);
 
     return new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
         tabButton('collection', activeTab),
         tabButton('owned', activeTab),
         prevButton,
         nextButton,
+        backButton,
     );
 }
 
@@ -174,7 +198,7 @@ function buildCollectionCard(
         new TextDisplayBuilder().setContent(
             [
                 `### ${petEmoji(client, def)} **${def.name}**`,
-                `${rarityBadge(def.rarity)}${equipped ? ' • Đang trang bị' : ''}`,
+                `${rarityBadge(def.rarity)}${equipped ? ' • Đang trang bị' : ''}${combatBadge(client, def)}`,
             ].join('\n'),
         ),
         new TextDisplayBuilder().setContent(`\`${def.description}\``),
@@ -187,7 +211,7 @@ function buildCollectionCard(
     container.addTextDisplayComponents(
         new TextDisplayBuilder().setContent(
             owned
-                ? `Đã sở hữu ${equipped ? '• đang trang bị' : ''}`
+                ? `${getEmoji(client, EMOJI_CHECK)} Đã sở hữu ${equipped ? '• Đang trang bị' : ''}`
                 : 'Chưa sở hữu — hãy đào quặng tìm rương kho báu!',
         ),
     );
@@ -203,7 +227,7 @@ function buildCollection(
 ): ContainerBuilder[] {
     const allPets = Array.from(client.resources.pets.values()).sort(
         (a: Pet, b: Pet) =>
-            (RARITY_ORDER[b.rarity] ?? 0) - (RARITY_ORDER[a.rarity] ?? 0),
+            (RARITY_ORDER[a.rarity] ?? 0) - (RARITY_ORDER[b.rarity] ?? 0),
     );
 
     const totalPages = Math.max(
@@ -260,16 +284,20 @@ function buildOwnedCard(
 
     const xpRequired =
         owned.level >= PET_MAX_LEVEL ? 0 : getRequiredPetXp(owned.level);
-    const xpPercent =
-        owned.level >= PET_MAX_LEVEL
-            ? 100
-            : Math.round((owned.xp / xpRequired) * 100);
     const xpText =
         owned.level >= PET_MAX_LEVEL
             ? 'MAX'
             : `${owned.xp.toLocaleString()}/${xpRequired.toLocaleString()} XP`;
 
     const statLines = buildStatLines(def, owned.level);
+    const combatLines = buildCombatLines(client, def, owned.level);
+
+    const body = [
+        `${xpText}`,
+        '',
+        ...statLines,
+        ...(combatLines.length ? ['', ...combatLines] : []),
+    ].join('\n');
 
     const container = new ContainerBuilder().setAccentColor(
         resolveColor(rarityHex(def.rarity) as ColorResolvable),
@@ -279,17 +307,10 @@ function buildOwnedCard(
         new TextDisplayBuilder().setContent(
             [
                 `### ${petEmoji(client, def)} **${def.name}**`,
-                `${rarityBadge(def.rarity)} • Lv.**${owned.level}/${PET_MAX_LEVEL}**${isEquipped ? ' • 『 ĐANG TRANG BỊ 』' : ''}`,
+                `${rarityBadge(def.rarity)} • Lv.**${owned.level}/${PET_MAX_LEVEL}**${isEquipped ? ' • 『 ĐANG TRANG BỊ 』' : ''}${combatBadge(client, def)}`,
             ].join('\n'),
         ),
-        new TextDisplayBuilder().setContent(
-            [
-                `\`${buildXpBar(xpPercent)}\` **${xpPercent}%**`,
-                `${xpText}`,
-                '',
-                statLines.join('\n'),
-            ].join('\n'),
-        ),
+        new TextDisplayBuilder().setContent(body),
     );
 
     container.addSeparatorComponents(

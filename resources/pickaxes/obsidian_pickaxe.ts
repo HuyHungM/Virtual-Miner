@@ -6,7 +6,7 @@ export default {
     biomes: ['legendary_abyss'],
     price: 12_000_000_000,
     unlock_level: 500,
-    description: 'Hắc diện thạch đen tuyền, bước vào vực sâu huyền thoại.',
+    description: 'Từ vực sâu hắc ám, kết tinh thành một khối bất diệt.',
     emoji: '1543199279404027995',
     buff: {
         effective: 2.6,

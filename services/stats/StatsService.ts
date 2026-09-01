@@ -3,6 +3,7 @@ import type { Client } from 'discord.js';
 import { getUpgradeStats } from '../upgrade/UpgradeService';
 import { getActiveBoosts, getBoostByGroup } from '../shop/BoostShopService';
 import { getPetBonusStats } from '../pet/PetStatService';
+import { getCharmStatBonus } from '../charm/CharmService';
 import {
     EMOJI_PICKAXE,
     EMOJI_FORTUNE,
@@ -50,7 +51,9 @@ export interface MultiplierInfo {
     boostBonus: number;
     /** Additive bonus from equipped pet (0 when none). */
     petBonus: number;
-    /** Combined total multiplier: base * (1 + pickaxeBonus + boostBonus + petBonus). */
+    /** Additive bonus from owned charms (0 when none). */
+    charmBonus: number;
+    /** Combined total multiplier: base * (1 + pickaxeBonus + boostBonus + petBonus + charmBonus). */
     total: number;
 }
 
@@ -65,6 +68,8 @@ export function getPlayerMultipliers(
     const activeBoosts = getActiveBoosts(user);
 
     const petBonuses = getPetBonusStats(client, user);
+
+    const charmBonuses = getCharmStatBonus(client, user);
 
     const result: MultiplierInfo[] = [];
 
@@ -84,6 +89,8 @@ export function getPlayerMultipliers(
 
         const petBonus = petBonuses[def.stat] ?? 0;
 
+        const charmBonus = charmBonuses[def.stat] ?? 0;
+
         result.push({
             stat: def.stat,
             name: def.name,
@@ -92,13 +99,16 @@ export function getPlayerMultipliers(
             pickaxeBonus,
             boostBonus,
             petBonus,
-            total: base * (1 + pickaxeBonus + boostBonus + petBonus),
+            charmBonus,
+            total:
+                base * (1 + pickaxeBonus + boostBonus + petBonus + charmBonus),
         });
     }
 
     const sellBase = stats.sell_price;
     const sellBuff = pickaxe?.buff?.sell_price ?? 0;
     const sellPetBonus = petBonuses.sell_price ?? 0;
+    const sellCharmBonus = charmBonuses.sell_price ?? 0;
 
     result.push({
         stat: SELL_DEF.stat,
@@ -108,7 +118,8 @@ export function getPlayerMultipliers(
         pickaxeBonus: sellBuff,
         boostBonus: 0,
         petBonus: sellPetBonus,
-        total: sellBase * (1 + sellBuff + sellPetBonus),
+        charmBonus: sellCharmBonus,
+        total: sellBase * (1 + sellBuff + sellPetBonus + sellCharmBonus),
     });
 
     return result;

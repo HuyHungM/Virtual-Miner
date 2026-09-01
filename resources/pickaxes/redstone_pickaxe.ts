@@ -6,7 +6,7 @@ export default {
     biomes: ['ancient_forest'],
     price: 2500000,
     unlock_level: 50,
-    description: 'Hiện đại hại điện. Một kỷ nguyên mới.',
+    description: 'Hồng thạch cộng hưởng, đánh thức nguồn năng lượng cổ xưa.',
     emoji: '1543193249622269982',
     buff: {
         effective: 0.9,

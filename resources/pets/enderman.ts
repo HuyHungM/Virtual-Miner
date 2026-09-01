@@ -5,7 +5,7 @@ export default {
     name: 'Enderman',
     emoji: '1544019306352869406',
     rarity: 'epic',
-    description: 'Enderman teleport, tìm kho báu ở mọi nơi.',
+    description: 'Enderman - Kẻ lang thang giữa các chiều không gian.',
     baseStats: {
         fortune: 0.08,
         chest_quality: 0.06,

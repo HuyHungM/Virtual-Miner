@@ -8,6 +8,10 @@ import type { Boost } from './types/Boost';
 import type { Pickaxe } from './types/Pickaxe';
 import type { Ore } from './types/Ore';
 import type { Pet } from './types/Pet';
+import type { Charm } from './types/Charm';
+import type { Potion } from './types/Potion';
+import type { BackpackDef } from './types/Backpack';
+import type { EnemyDef } from './types/Enemy';
 
 declare module 'discord.js' {
     interface Client {
@@ -18,6 +22,10 @@ declare module 'discord.js' {
             ores: Collection<string, Ore>;
             boosts: Collection<string, Boost>;
             pets: Collection<string, Pet>;
+            charms: Collection<string, Charm>;
+            potions: Collection<string, Potion>;
+            backpacks: Collection<string, BackpackDef>;
+            enemies: Collection<string, EnemyDef>;
         };
         appEmojis: Collection<string, string>;
     }
@@ -44,8 +52,22 @@ const biomes = new Collection<string, Biome>();
 const boosts = new Collection<string, Boost>();
 const pickaxes = new Collection<string, Pickaxe>();
 const pets = new Collection<string, Pet>();
+const charms = new Collection<string, Charm>();
+const potions = new Collection<string, Potion>();
+const backpacks = new Collection<string, BackpackDef>();
+const enemies = new Collection<string, EnemyDef>();
 client.commands = commands;
-client.resources = { ores, biomes, pickaxes, boosts, pets };
+client.resources = {
+    ores,
+    biomes,
+    pickaxes,
+    boosts,
+    pets,
+    charms,
+    potions,
+    backpacks,
+    enemies,
+};
 
 try {
     const handles = readdirSync(join('.', 'handles'));

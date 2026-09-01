@@ -5,7 +5,7 @@ export default {
     name: 'Sheep',
     emoji: '1544019294357028954',
     rarity: 'common',
-    description: 'Cừu wooly giúp bạn đào thêm quặng.',
+    description: 'Kiên nhẫn vượt qua mọi chặng đường.',
     baseStats: {
         effective: 0.02,
         xp_multiplier: 0.02,

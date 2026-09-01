@@ -6,7 +6,7 @@ export default {
     biomes: ['ancient_forest'],
     price: 900000,
     unlock_level: 50,
-    description: 'Tinh thể trong suốt, cân bằng sức mạnh.',
+    description: 'Tinh thể vô sắc, ẩn chứa sức mạnh của cổ lâm.',
     emoji: '1543198568058454196',
     buff: {
         effective: 0.8,

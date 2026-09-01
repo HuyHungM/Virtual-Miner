@@ -6,7 +6,7 @@ export default {
     biomes: ['legendary_abyss'],
     price: 50_000_000_000,
     unlock_level: 500,
-    description: 'Nelvarian huyền thoại tối thượng, đỉnh cao sức mạnh.',
+    description: 'Nelvarian — di vật của một kỷ nguyên đã bị lãng quên.',
     emoji: '1543198557564309645',
     buff: {
         effective: 3.2,

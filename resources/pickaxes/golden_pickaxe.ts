@@ -6,7 +6,7 @@ export default {
     biomes: ['ancient_forest'],
     price: 250000,
     unlock_level: 50,
-    description: 'Lấp lánh hoàng kim, gia tăng gia tài và rương.',
+    description: 'Hoàng kim phủ sắc cổ lâm, đánh thức những gì bị lãng quên.',
     emoji: '1543192468839997511',
     buff: {
         effective: 0.7,

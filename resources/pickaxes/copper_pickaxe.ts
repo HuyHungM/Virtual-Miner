@@ -6,7 +6,7 @@ export default {
     biomes: ['plains'],
     price: 15000,
     unlock_level: 1,
-    description: 'Cứng hơn một chút rồi. Tăng một chút gia tài.',
+    description: 'Thanh đồng tôi luyện, mở rộng bước chân khai phá.',
     emoji: '1543192473273106472',
     buff: {
         effective: 0.3,

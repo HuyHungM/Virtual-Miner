@@ -2,8 +2,8 @@ import type { Ore } from '../../types/Ore';
 
 export default {
     name: 'Than',
-    id: 'than',
-    emoji: '',
+    id: 'coal',
+    emoji: '1544364417670717460',
     biome: 'ancient_forest',
     value: 10,
     xp: 8,

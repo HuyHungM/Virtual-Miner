@@ -6,7 +6,7 @@ export default {
     biomes: ['plains'],
     price: 60000,
     unlock_level: 1,
-    description: 'Một chút gia tài. Tăng tỉ lệ đào kho báu.',
+    description: 'Lưu sắc soi đường, tài bảo ẩn sâu chờ đợi.',
     emoji: '1543192461340442664',
     buff: {
         effective: 0.4,

@@ -6,7 +6,7 @@ export default {
     biomes: ['gem_highlands'],
     price: 320000000,
     unlock_level: 150,
-    description: 'Ngọc nước trong xanh, sức mạnh tinh tế.',
+    description: 'Ngưng tụ linh khí sơn hà, thanh quang soi thấu vạn vật.',
     emoji: '1543192463215165562',
     buff: {
         effective: 1.55,

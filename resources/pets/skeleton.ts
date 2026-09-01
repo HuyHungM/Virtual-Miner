@@ -5,7 +5,7 @@ export default {
     name: 'Skeleton',
     emoji: '1544019292063006740',
     rarity: 'rare',
-    description: 'Bộ xương linh hoạt, giúp đào được nhiều quặng hơn.',
+    description: 'Skeleton - Tiếng cung vang lên giữa màn đêm.',
     baseStats: {
         effective: 0.06,
         xp_multiplier: 0.05,

@@ -6,7 +6,7 @@ export default {
     biomes: ['volcano_core'],
     price: 7_500_000_000,
     unlock_level: 250,
-    description: 'Dung nham nóng chảy, đỉnh cao của lòng núi lửa.',
+    description: 'Hỏa diễm nung đỏ, sức mạnh từ lòng đất trỗi dậy.',
     emoji: '1543192465279025262',
     buff: {
         effective: 2.45,

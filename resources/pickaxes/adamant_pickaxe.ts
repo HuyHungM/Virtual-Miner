@@ -6,7 +6,7 @@ export default {
     biomes: ['volcano_core'],
     price: 3_800_000_000,
     unlock_level: 250,
-    description: 'Adamant rắn chắc, nghiêng về sức công phá.',
+    description: 'Được tinh luyện từ địa tâm, mang uy lực bất hoại.',
     emoji: '1543198559350947850',
     buff: {
         effective: 2.15,

@@ -6,7 +6,7 @@ export default {
     biomes: ['ancient_forest'],
     price: 15000000,
     unlock_level: 50,
-    description: 'Tím huyền bí, sức mạnh vượt trội rừng cổ.',
+    description: 'Kết tinh từ những bí mật chưa từng được đánh thức.',
     emoji: '1543199122708897923',
     buff: {
         effective: 1.1,

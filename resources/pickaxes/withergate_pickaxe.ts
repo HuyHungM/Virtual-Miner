@@ -6,7 +6,7 @@ export default {
     biomes: ['legendary_abyss'],
     price: 18_000_000_000,
     unlock_level: 500,
-    description: 'Sức mạnh của tử thần, phá hủy mọi thứ.',
+    description: 'Hắc lực thức tỉnh, gieo tử ý xuống tận cùng vực thẳm.',
     emoji: '1543199127205056572',
     buff: {
         effective: 2.75,
