@@ -1,5 +1,6 @@
 import {
     ContainerBuilder,
+    MessageFlags,
     resolveColor,
     SeparatorBuilder,
     SeparatorSpacingSize,
@@ -38,6 +39,7 @@ export default {
 
         await interaction.reply({
             components: [container],
+            flags: MessageFlags.IsComponentsV2,
         });
     },
 } satisfies Command;
