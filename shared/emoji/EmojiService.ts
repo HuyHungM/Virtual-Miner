@@ -24,7 +24,6 @@ export const EMOJI_QUEST = '1544611836387794984';
 // export const EMOJI_ARROW_LEFT = '1544216364577857587';
 // export const EMOJI_ARROW_RIGHT = '1544216361746694165';
 
-// Treasure Chest Trap emojis (placeholder IDs — replace with real app emojis)
 export const EMOJI_TRAP = '1544263884834344980';
 export const EMOJI_STUN = '1544263527479517204';
 export const EMOJI_SLOW = '1544263667032522873';
