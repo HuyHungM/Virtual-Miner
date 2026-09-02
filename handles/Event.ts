@@ -1,18 +1,12 @@
 import type { Client } from 'discord.js';
-import { readdirSync } from 'fs';
-import { join } from 'path';
+
+import { events } from '../events/manifest';
 
 export default async (client: Client) => {
-    const files = readdirSync(join('.', '.', 'events'));
-
-    for (const name of files) {
-        if (!name.endsWith('.ts')) continue;
-
-        const event = await import(`../events/${name}`);
-
-        if (typeof event.default === 'function') {
-            console.log(`[EVENT] Đã tải ${name}`);
-            event.default(client);
+    for (const event of events) {
+        if (typeof event === 'function') {
+            console.log('[EVENT] Đã tải một sự kiện');
+            event(client);
         }
     }
 };

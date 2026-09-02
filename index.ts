@@ -1,7 +1,7 @@
+import 'dotenv/config';
+
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 
-import { readdirSync } from 'fs';
-import { join } from 'path';
 import type { Command } from './types/Command';
 import type { Biome } from './types/Biome';
 import type { Boost } from './types/Boost';
@@ -12,6 +12,11 @@ import type { Charm } from './types/Charm';
 import type { Potion } from './types/Potion';
 import type { BackpackDef } from './types/Backpack';
 import type { EnemyDef } from './types/Enemy';
+
+import runMongoose from './handles/Mongoose';
+import runResource from './handles/Resource';
+import runSlashCommand from './handles/SlashCommand';
+import runEvent from './handles/Event';
 
 declare module 'discord.js' {
     interface Client {
@@ -40,7 +45,7 @@ const client = new Client({
     ],
 });
 
-const token = Bun.env.TOKEN;
+const token = process.env.TOKEN;
 
 if (!token) {
     throw new Error('Missing TOKEN');
@@ -70,16 +75,10 @@ client.resources = {
 };
 
 try {
-    const handles = readdirSync(join('.', 'handles'));
-
-    for (const name of handles) {
-        if (!name.endsWith('.ts')) continue;
-
-        const handle = await import(`./handles/${name}`);
-        if (typeof handle.default === 'function') {
-            handle.default(client);
-        }
-    }
+    await runMongoose();
+    await runResource(client);
+    await runSlashCommand(client);
+    await runEvent(client);
 
     client.login(token);
 } catch (error) {

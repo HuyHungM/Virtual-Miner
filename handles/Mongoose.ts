@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const uri = Bun.env.MONGO_URI;
+const uri = process.env.MONGO_URI;
 
 if (!uri) {
     throw new Error('Missing MONGO_URI');

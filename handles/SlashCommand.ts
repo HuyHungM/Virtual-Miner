@@ -1,8 +1,7 @@
 import { REST, Routes, type Client } from 'discord.js';
-import { readdirSync } from 'fs';
-import { join } from 'path';
 
 import type { CommandOption } from '../types/Command';
+import { commands } from '../commands/manifest';
 
 interface Commands {
     name: string;
@@ -10,8 +9,8 @@ interface Commands {
     options?: CommandOption[];
 }
 
-const token = Bun.env.TOKEN;
-const client_id = Bun.env.CLIENT_ID;
+const token = process.env.TOKEN;
+const client_id = process.env.CLIENT_ID;
 
 if (!token) {
     throw new Error('Missing TOKEN');
@@ -22,33 +21,26 @@ if (!client_id) {
 }
 
 export default async (client: Client) => {
-    const commands: Commands[] = [];
+    const commandBodies: Commands[] = [];
 
-    const files = readdirSync(join('.', '.', 'commands'));
-
-    for (const name of files) {
-        if (!name.endsWith('.ts')) continue;
-
-        const command = await import(`../commands/${name}`);
-
-        const data = command.default;
+    for (const data of commands) {
         if (!data) continue;
 
         client.commands.set(data.name, data);
-        commands.push({
+        commandBodies.push({
             name: data.name,
             description: data.description,
             options: data.options,
         });
-        console.log(`[SLASH COMMAND] Đã tải ${name}`);
+        console.log(`[SLASH COMMAND] Đã tải ${data.name}`);
     }
 
     const rest = new REST({
         version: '10',
     }).setToken(token);
     await rest.put(Routes.applicationCommands(client_id), {
-        body: commands,
+        body: commandBodies,
     });
 
-    console.log(`[SLASH COMMAND] Đã tải ${commands.length} lệnh`);
+    console.log(`[SLASH COMMAND] Đã tải ${commandBodies.length} lệnh`);
 };
