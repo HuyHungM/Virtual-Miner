@@ -17,7 +17,7 @@ export interface LevelUpResult {
     levelsGained: number;
 }
 
-function interpolate(points: CurvePoint[], level: number): number {
+export function interpolate(points: CurvePoint[], level: number): number {
     if (level <= points[0]!.level) {
         return points[0]!.value;
     }
@@ -32,7 +32,8 @@ function interpolate(points: CurvePoint[], level: number): number {
             return Math.floor(
                 Math.exp(
                     Math.log(start.value) +
-                        progress * (Math.log(end.value) - Math.log(start.value)),
+                        progress *
+                            (Math.log(end.value) - Math.log(start.value)),
                 ),
             );
         }
@@ -40,7 +41,9 @@ function interpolate(points: CurvePoint[], level: number): number {
 
     const last = points[points.length - 1]!;
 
-    return Math.floor(last.value * Math.pow(XP_TAIL_GROWTH, level - last.level));
+    return Math.floor(
+        last.value * Math.pow(XP_TAIL_GROWTH, level - last.level),
+    );
 }
 
 export function getRequiredXp(level: number): number {

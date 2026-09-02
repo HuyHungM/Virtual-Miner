@@ -5,7 +5,10 @@ import User from '../../models/User';
 import {
     CHARM_MAX_LEVEL,
     CHARM_LEVEL_SCALE_FACTOR,
+    QUEST_CHARM_POINTS,
+    QUEST_CHARM_MAX,
 } from '../balance/BalanceConfig';
+import { interpolate } from '../level/LevelService';
 import type { Buff } from '../../types/Buff';
 import type { OwnedCharm } from '../../types/Charm';
 
@@ -63,6 +66,19 @@ export function getOwnedCharm(
 
 export function isCharmOwned(user: any, charmId: string): boolean {
     return user.charms?.some((c: OwnedCharm) => c.charmId === charmId) ?? false;
+}
+
+/**
+ * Level-scaled charm reward shared by Daily Quests and the Daily Reward.
+ * Always within [1, QUEST_CHARM_MAX] (1..20).
+ */
+export function getDailyCharmReward(level: number): number {
+    const safeLevel = Math.max(1, level);
+
+    return Math.max(
+        1,
+        Math.min(QUEST_CHARM_MAX, interpolate(QUEST_CHARM_POINTS, safeLevel)),
+    );
 }
 
 /** Summed bonus across all owned charms — each charm feeds only its own stat. */

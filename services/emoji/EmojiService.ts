@@ -19,6 +19,8 @@ export const EMOJI_LEVEL_UP = '1544025596315566291';
 export const EMOJI_INVENTORY = '1544025861190193232';
 export const EMOJI_GLOBE = '1544026225171894353';
 export const EMOJI_CHECK = '1544026466977583165';
+export const EMOJI_GIFT = '1544026466977583170'; // placeholder — replace with real app emoji
+export const EMOJI_QUEST = '1544026466977583171'; // placeholder — replace with real app emoji
 // export const EMOJI_ARROW_LEFT = '1544216364577857587';
 // export const EMOJI_ARROW_RIGHT = '1544216361746694165';
 

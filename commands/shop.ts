@@ -713,7 +713,8 @@ export async function executeShopBackpacks(
                         .setCustomId(
                             `backpack:buy:${backpack.id}:${result.page}`,
                         )
-                        .setLabel(`Mua $${backpack.price.toLocaleString()}`)
+                        .setEmoji(emoji)
+                        .setLabel(`$${backpack.price.toLocaleString()}`)
                         .setStyle(
                             buyable
                                 ? ButtonStyle.Primary
@@ -726,7 +727,6 @@ export async function executeShopBackpacks(
                     `### ${emoji} **Ba lô ${toRoman(backpack.tier)}**`,
                     `*${pageBiome.name} • Tầng ${backpack.tier}/4*`,
                     `${getEmoji(client, EMOJI_CLOCK)} Giảm thời gian chờ: **-${backpack.tier * 0.25}s**`,
-                    `Giá: **$${backpack.price.toLocaleString()}**`,
                     status,
                 ];
 

@@ -82,6 +82,25 @@ export async function updateGems(
     );
 }
 
+/**
+ * Atomically replaces the user's daily quests and day key without the
+ * document-level `__v` optimistic filter (which whole-doc `save()` applies to
+ * subarray changes). Concurrent writers in different transactions then settle
+ * via a write conflict + `withTransaction` retry instead of a `VersionError`.
+ */
+export async function updateQuests(
+    userId: string,
+    quests: any[],
+    questDay: string,
+    session?: ClientSession,
+) {
+    return User.updateOne(
+        { userId },
+        { $set: { quests, questDay } },
+        { session },
+    );
+}
+
 export async function addActiveBoost(
     userId: string,
     boost: ActiveBoost,
@@ -106,7 +125,12 @@ export async function addActiveBoost(
                                     as: 'b',
                                     cond: {
                                         $and: [
-                                            { $ne: ['$$b.boostId', boost.boostId] },
+                                            {
+                                                $ne: [
+                                                    '$$b.boostId',
+                                                    boost.boostId,
+                                                ],
+                                            },
                                             { $gt: ['$$b.expiresAt', now] },
                                         ],
                                     },
@@ -262,10 +286,7 @@ export async function equipPet(
     );
 }
 
-export async function unequipPet(
-    userId: string,
-    session?: ClientSession,
-) {
+export async function unequipPet(userId: string, session?: ClientSession) {
     return User.findOneAndUpdate(
         { userId },
         { $set: { equippedPet: null } },

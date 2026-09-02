@@ -81,6 +81,8 @@ export const CHEST_MAX_CHANCE = 40;
 // ============================================
 export const PET_MAX_LEVEL = 500;
 export const PET_LEVEL_SCALE_FACTOR = 0.02;
+/** Fraction of the player's mining XP granted to the equipped pet. */
+export const PET_MINING_XP_MULTIPLIER = 0.05;
 
 // ---- Combat pets ----
 export const DEFAULT_ATTACK_SPEED = 1;
@@ -185,6 +187,148 @@ export const PIGLIN_ROBBERY_200_START_LEVEL = 200;
 // ---- Mining cooldown (minimal system built for Stun/Slow) ----
 /** How long a Mining Slow effect lasts (minutes) before expiring. */
 export const MINING_SLOW_DURATION = 30;
+
+// ============================================
+// DAILY REWARD
+// ============================================
+/** How long a player must wait between successful daily claims (ms). */
+export const DAILY_COOLDOWN_MS = 12 * 60 * 60 * 1000; // 12 hours
+
+/** Reward category selection weights (sum = 100). */
+export const DAILY_CHANCES = {
+    money: 35,
+    xp: 30,
+    charm: 20,
+    gem: 15,
+};
+
+/** Base share of the level's best pickaxe price used for the daily money reward. */
+export const DAILY_MONEY_BASE_FRACTION = 0.0025;
+
+/** Top pickaxe price per biome tier (calibration anchors). */
+export const DAILY_MONEY_PICKAXE_POINTS: CurvePoint[] = [
+    { level: 1, value: 200_000 },
+    { level: 50, value: 15_000_000 },
+    { level: 150, value: 900_000_000 },
+    { level: 250, value: 7_500_000_000 },
+    { level: 500, value: 50_000_000_000 },
+];
+
+/** Expected money earned per mine at each biome unlock level (calibrated from the ore economy). */
+export const DAILY_MONEY_EARN_POINTS: CurvePoint[] = [
+    { level: 1, value: 7 },
+    { level: 50, value: 75 },
+    { level: 150, value: 376 },
+    { level: 250, value: 1323 },
+    { level: 500, value: 3745 },
+];
+
+/** Expected XP earned per mine at each biome unlock level (calibrated from the ore economy). */
+export const DAILY_XP_EARN_POINTS: CurvePoint[] = [
+    { level: 1, value: 7 },
+    { level: 50, value: 60 },
+    { level: 150, value: 269 },
+    { level: 250, value: 907 },
+    { level: 500, value: 2407 },
+];
+
+/** Bonus share of the money earned while gaining the current level. */
+export const DAILY_MONEY_BONUS_FRACTION = 0.1;
+
+/** XP reward as a fraction of the player's current required XP. */
+export const DAILY_XP_FRACTION = 0.15;
+
+/** Gem reward range (inclusive random). */
+export const DAILY_GEM = {
+    min: 1,
+    max: 5,
+};
+
+// ============================================
+// DAILY QUESTS
+// ============================================
+/** Number of quests generated and active per user per day. */
+export const QUEST_COUNT = 3;
+
+/** Reward category selection weights (sum = 100). */
+export const QUEST_REWARD_CHANCES = {
+    money: 30,
+    xp: 30,
+    charm: 20,
+    gem: 20,
+};
+
+/** Money reward scale applied on top of the existing daily money-economy formula. */
+export const QUEST_MONEY_SCALE = 0.5;
+
+/** XP reward as a fraction of the XP required at the current level. */
+export const QUEST_XP_FRACTION = 0.1;
+
+/** Gem reward range (inclusive random). */
+export const QUEST_GEM = {
+    min: 1,
+    max: 10,
+};
+
+/** Charm reward growth anchored to the player's level. */
+export const QUEST_CHARM_POINTS: CurvePoint[] = [
+    { level: 1, value: 1 },
+    { level: 50, value: 3 },
+    { level: 150, value: 6 },
+    { level: 250, value: 10 },
+    { level: 500, value: 18 },
+];
+
+/** Hard cap on the charm reward granted per quest. */
+export const QUEST_CHARM_MAX = 20;
+
+/**
+ * Requirement anchors per quest type (level -> realistic daily target).
+ * Log-interpolated at generation so requirements grow smoothly with level.
+ */
+export type QuestRequirementKey =
+    'mine' | 'collect_ores' | 'level_up' | 'open_chests' | 'earn_money';
+
+export const QUEST_REQUIREMENT_POINTS: Record<
+    QuestRequirementKey,
+    CurvePoint[]
+> = {
+    mine: [
+        { level: 1, value: 30 },
+        { level: 50, value: 150 },
+        { level: 150, value: 450 },
+        { level: 250, value: 750 },
+        { level: 500, value: 1200 },
+    ],
+    collect_ores: [
+        { level: 1, value: 120 },
+        { level: 50, value: 600 },
+        { level: 150, value: 1800 },
+        { level: 250, value: 3000 },
+        { level: 500, value: 4800 },
+    ],
+    open_chests: [
+        { level: 1, value: 10 },
+        { level: 50, value: 60 },
+        { level: 150, value: 150 },
+        { level: 250, value: 250 },
+        { level: 500, value: 300 },
+    ],
+    earn_money: [
+        { level: 1, value: 500 },
+        { level: 50, value: 15_000 },
+        { level: 150, value: 450_000 },
+        { level: 250, value: 1_500_000 },
+        { level: 500, value: 5_000_000 },
+    ],
+    level_up: [
+        { level: 1, value: 2 },
+        { level: 50, value: 3 },
+        { level: 150, value: 3 },
+        { level: 250, value: 2 },
+        { level: 500, value: 1 },
+    ],
+};
 
 // ============================================
 // BACKPACKS & MINING COOLDOWN

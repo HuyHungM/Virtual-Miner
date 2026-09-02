@@ -60,7 +60,7 @@ const RARITY_ORDER: Record<string, number> = {
     common: 1,
 };
 
-const PETS_PER_PAGE = 4;
+const PETS_PER_PAGE = 2;
 const COLLECTION_PER_PAGE = 4;
 
 type ClientRef = Parameters<Command['run']>[0];

@@ -12,6 +12,7 @@ export interface PetLevelUpResult {
     oldLevel: number;
     newLevel: number;
     xp: number;
+    xpGained: number;
     xpRequired: number;
     levelsGained: number;
 }
@@ -73,6 +74,7 @@ export async function addPetXp(
         oldLevel,
         newLevel: result.level,
         xp: result.xp,
+        xpGained: amount,
         xpRequired:
             result.level >= PET_MAX_LEVEL ? 0 : getRequiredPetXp(result.level),
         levelsGained: result.level - oldLevel,

@@ -174,6 +174,43 @@ const UserSchema = new Schema(
             type: Date,
             default: null,
         },
+        questDay: {
+            type: String,
+            default: null,
+        },
+        quests: {
+            type: [
+                {
+                    questId: {
+                        type: String,
+                        required: true,
+                    },
+                    type: {
+                        type: String,
+                        required: true,
+                    },
+                    requirement: {
+                        type: Number,
+                        required: true,
+                        min: 0,
+                    },
+                    progress: {
+                        type: Number,
+                        default: 0,
+                        min: 0,
+                    },
+                    completed: {
+                        type: Boolean,
+                        default: false,
+                    },
+                    claimed: {
+                        type: Boolean,
+                        default: false,
+                    },
+                },
+            ],
+            default: [],
+        },
         backpacks: {
             type: [
                 {

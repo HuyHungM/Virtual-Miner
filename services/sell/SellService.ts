@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import type { Client, Collection } from 'discord.js';
+import type { Client, Collection, TextBasedChannel } from 'discord.js';
 
 import type { Ore } from '../../types/Ore';
 import { clearInventory, getInventory } from '../inventory/InventoryService';
@@ -7,6 +7,7 @@ import { getUser, updateBalance } from '../user/UserService';
 import { getUpgradeStats } from '../upgrade/UpgradeService';
 import { getPetBonusForStat } from '../pet/PetStatService';
 import { getCharmBonusForStat } from '../charm/CharmService';
+import { updateQuestProgress } from '../quest/QuestService';
 
 export interface SellResult {
     soldItems: number;
@@ -71,7 +72,11 @@ export function calculateSellResult(
     return result;
 }
 
-export async function sellAll(client: Client, user: any): Promise<SellResult> {
+export async function sellAll(
+    client: Client,
+    user: any,
+    channel?: TextBasedChannel | null,
+): Promise<SellResult> {
     const session = await mongoose.startSession();
 
     try {
@@ -103,6 +108,16 @@ export async function sellAll(client: Client, user: any): Promise<SellResult> {
             await updateBalance(user.userId, result.totalValue, session);
 
             await clearInventory(user.userId, session);
+
+            if (result.totalValue > 0) {
+                await updateQuestProgress(
+                    client,
+                    user.userId,
+                    [{ type: 'earn_money', amount: result.totalValue }],
+                    session,
+                    channel,
+                );
+            }
         });
 
         return result;

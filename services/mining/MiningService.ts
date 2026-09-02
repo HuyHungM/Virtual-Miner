@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import type { Client } from 'discord.js';
+import type { Client, TextBasedChannel } from 'discord.js';
 
 import { validateMining } from './MiningValidator';
 import { getBiomeOres, rollOres } from './OreService';
@@ -38,6 +38,11 @@ import {
     setLastMineAt,
 } from '../chest/TrapService';
 import { calcFinalCooldown } from '../shop/BackpackShopService';
+import { PET_MINING_XP_MULTIPLIER } from '../balance/BalanceConfig';
+import {
+    updateQuestProgress,
+    type QuestProgressUpdate,
+} from '../quest/QuestService';
 
 function getBiomeTier(client: Client, biomeId: string): number {
     const ordered = [...client.resources.biomes.values()].sort(
@@ -150,7 +155,11 @@ function applyExtraStats(
     }
 }
 
-export async function mine(client: Client, user: any): Promise<MiningResult> {
+export async function mine(
+    client: Client,
+    user: any,
+    channel?: TextBasedChannel | null,
+): Promise<MiningResult> {
     // Validate
     const validation = validateMining(client, user.pickaxe, user.biome);
 
@@ -184,9 +193,7 @@ export async function mine(client: Client, user: any): Promise<MiningResult> {
             return {
                 success: false,
                 reason: 'MINING_COOLDOWN',
-                remainingMs: Math.ceil(
-                    effectiveCooldown * 1000 - elapsed,
-                ),
+                remainingMs: Math.ceil(effectiveCooldown * 1000 - elapsed),
             };
         }
     }
@@ -348,9 +355,12 @@ export async function mine(client: Client, user: any): Promise<MiningResult> {
             // Record the mine time for cooldown bookkeeping.
             await setLastMineAt(user.userId, session);
 
-            // Pet XP (only equipped pet)
-            if (user.equippedPet && miningXp > 0) {
-                petLevelUp = await addPetXp(user.userId, miningXp, session);
+            // Pet XP — only the equipped pet, as a fraction of the player's
+            // mining XP (see PET_MINING_XP_MULTIPLIER).
+            const petXp = Math.floor(miningXp * PET_MINING_XP_MULTIPLIER);
+
+            if (user.equippedPet && petXp > 0) {
+                petLevelUp = await addPetXp(user.userId, petXp, session);
             }
 
             // Pet drop from chest
@@ -368,6 +378,41 @@ export async function mine(client: Client, user: any): Promise<MiningResult> {
                     session,
                 );
             }
+
+            // Daily quest progress (batched inside the mining transaction)
+            const questUpdates: QuestProgressUpdate[] = [
+                { type: 'mine', amount: 1 },
+                {
+                    type: 'collect_ores',
+                    amount: results.reduce((sum, r) => sum + r.amount, 0),
+                },
+            ];
+
+            if (grantedChest) {
+                questUpdates.push({ type: 'open_chests', amount: 1 });
+
+                if (chest.money > 0) {
+                    questUpdates.push({
+                        type: 'earn_money',
+                        amount: chest.money,
+                    });
+                }
+            }
+
+            if (levelUp && levelUp.levelsGained > 0) {
+                questUpdates.push({
+                    type: 'level_up',
+                    amount: levelUp.levelsGained,
+                });
+            }
+
+            await updateQuestProgress(
+                client,
+                user.userId,
+                questUpdates,
+                session,
+                channel,
+            );
         });
 
         return {

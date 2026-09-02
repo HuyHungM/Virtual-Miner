@@ -85,7 +85,7 @@ async function executeMine(client: Client, interaction: any) {
         return;
     }
 
-    const result = await mine(client, user);
+    const result = await mine(client, user, interaction.channel);
 
     // Error
     if (!result.success) {
@@ -373,16 +373,16 @@ async function executeMine(client: Client, interaction: any) {
             ? getEmoji(client, petDef.emoji)
             : getEmoji(client, EMOJI_PET);
 
+        description.push(
+            `${petEmoji} **${petDef?.name ?? 'Pet'}:** *+${result.petLevelUp.xpGained.toLocaleString()} Pet XP*`,
+        );
+
         if (result.petLevelUp.levelsGained > 0) {
             description.push(
                 [
                     `${petEmoji} **${petDef?.name ?? 'Pet'} leveling up!**`,
                     `Lv.${result.petLevelUp.oldLevel} → Lv.${result.petLevelUp.newLevel}`,
                 ].join('\n'),
-            );
-        } else if (result.miningXp > 0) {
-            description.push(
-                `${petEmoji} **${petDef?.name ?? 'Pet'}:** *+${result.miningXp.toLocaleString()} Pet XP*`,
             );
         }
     }

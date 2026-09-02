@@ -56,7 +56,7 @@ export default {
             return;
         }
 
-        const result = await sellAll(client, user);
+        const result = await sellAll(client, user, interaction.channel);
 
         if (!result) {
             await interaction.reply({
