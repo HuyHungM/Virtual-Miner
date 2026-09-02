@@ -2,7 +2,7 @@
 
 export default {
     id: 'gem_highlands_backpack_1',
-    name: 'Ba lô I',
+    name: 'Ba lô Thạch Ngọc I',
     biome: 'gem_highlands',
     tier: 1,
     price: 25000000,

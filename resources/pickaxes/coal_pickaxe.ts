@@ -1,7 +1,7 @@
 import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: 'Cúp than',
+    name: 'Cúp Than',
     id: 'coal_pickaxe',
     biomes: ['plains'],
     price: 5000,

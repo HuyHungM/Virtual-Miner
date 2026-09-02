@@ -1,10 +1,10 @@
 import type { Ore } from '../../types/Ore';
 
 export default {
-    name: 'Quặng netherite',
+    name: 'Netherite',
     id: 'netherite',
     emoji: '1544364435790106784',
-    biome: 'volcano_core',
+    biome: 'hell_core',
     value: 580,
     xp: 380,
     chance: 7,

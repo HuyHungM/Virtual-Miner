@@ -1,7 +1,7 @@
 import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: 'Cúp đá',
+    name: 'Cúp Đá',
     id: 'stone_pickaxe',
     biomes: ['plains'],
     price: 1500,

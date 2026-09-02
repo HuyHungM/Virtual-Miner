@@ -2,7 +2,7 @@ import type { Pet } from '../../types/Pet';
 
 export default {
     id: 'blaze',
-    name: 'Blaze',
+    name: 'Quỷ lửa',
     emoji: '1544019907186925608',
     rarity: 'epic',
     description: 'Blaze - Ngọn lửa đến từ địa ngục.',

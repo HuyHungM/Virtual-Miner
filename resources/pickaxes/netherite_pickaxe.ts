@@ -1,9 +1,9 @@
 import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: 'Cúp netherite',
+    name: 'Cúp Netherite',
     id: 'netherite_pickaxe',
-    biomes: ['volcano_core'],
+    biomes: ['hell_core'],
     price: 5_500_000_000,
     unlock_level: 250,
     description:

@@ -1,4 +1,5 @@
 import {
+    ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
     ContainerBuilder,
@@ -9,11 +10,13 @@ import {
     SeparatorSpacingSize,
     TextDisplayBuilder,
     type ColorResolvable,
+    type MessageActionRowComponentBuilder,
 } from 'discord.js';
 
 import type { Command } from '../types/Command';
 
-import { getUser } from '../services/user/UserService';
+import { getUserOrReply, replyOrUpdate } from '../shared/discord/interaction';
+
 import {
     autoClaimLegacyCompletedQuests,
     ensureDailyQuests,
@@ -21,25 +24,15 @@ import {
     getNextQuestResetMs,
     getQuestDef,
     type DailyQuest,
-} from '../services/quest/QuestService';
+} from '../modules/quest/QuestService';
 import {
     getEmoji,
     setButtonEmoji,
     EMOJI_QUEST,
     EMOJI_CHECK,
     EMOJI_CLOCK,
-} from '../services/emoji/EmojiService';
-
-function formatDuration(ms: number): string {
-    const totalSeconds = Math.max(1, Math.ceil(ms / 1000));
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    if (minutes > 0) return `${minutes}m ${seconds}s`;
-    return `${seconds}s`;
-}
+} from '../shared/emoji/EmojiService';
+import { formatCountdown } from '../shared/utils/format';
 
 function buildQuestContainer(
     client: Parameters<Command['run']>[0],
@@ -100,65 +93,39 @@ function buildQuestContainer(
 
     container.addTextDisplayComponents(
         new TextDisplayBuilder().setContent(
-            `${getEmoji(client, EMOJI_CLOCK)} Đặt lại sau: **${formatDuration(
+            `${getEmoji(client, EMOJI_CLOCK)} Đặt lại sau: **${formatCountdown(
                 getNextQuestResetMs(),
             )}**`,
+        ),
+    );
+
+    container.addActionRowComponents(
+        new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
+            new ButtonBuilder()
+                .setCustomId('menu:back')
+                .setLabel('Quay lại')
+                .setStyle(ButtonStyle.Secondary),
         ),
     );
 
     return container;
 }
 
-function replyOrUpdate(
-    interaction: Parameters<Command['run']>[1],
-    build: () => ContainerBuilder,
-) {
-    const container = build();
-
-    if (interaction.isButton()) {
-        return interaction.update({
-            components: [container],
-            flags: MessageFlags.IsComponentsV2,
-        });
-    }
-
-    return interaction.reply({
-        components: [container],
-        flags: MessageFlags.IsComponentsV2,
-    });
-}
-
 export async function executeQuest(
     client: Parameters<Command['run']>[0],
     interaction: Parameters<Command['run']>[1],
 ) {
-    const user = await getUser(interaction.user.id);
+    const user = await getUserOrReply(client, interaction);
 
-    if (!user) {
-        await interaction.reply({
-            content:
-                'Bạn chưa tạo tài khoản.\n' +
-                '`/start` để bắt đầu hành trình cày cuốc của bạn.',
-            flags: MessageFlags.Ephemeral,
-        });
-        return;
-    }
+    if (!user) return;
 
     await ensureDailyQuests(client, user);
 
     await autoClaimLegacyCompletedQuests(client, user);
 
-    const fresh = await getUser(interaction.user.id);
+    const fresh = await getUserOrReply(client, interaction);
 
-    if (!fresh) {
-        await interaction.reply({
-            content:
-                'Bạn chưa tạo tài khoản.\n' +
-                '`/start` để bắt đầu hành trình cày cuốc của bạn.',
-            flags: MessageFlags.Ephemeral,
-        });
-        return;
-    }
+    if (!fresh) return;
 
     await ensureDailyQuests(client, fresh);
 

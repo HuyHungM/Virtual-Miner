@@ -1,7 +1,7 @@
 import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: 'Cúp sunite',
+    name: 'Cúp Sunite',
     id: 'sunite_pickaxe',
     biomes: ['legendary_abyss'],
     price: 26_000_000_000,

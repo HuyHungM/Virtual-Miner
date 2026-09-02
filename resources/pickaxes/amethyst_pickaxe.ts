@@ -1,7 +1,7 @@
 import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: 'Cúp thạch anh tím',
+    name: 'Cúp Thạch Anh Tím',
     id: 'amethyst_pickaxe',
     biomes: ['ancient_forest'],
     price: 15000000,

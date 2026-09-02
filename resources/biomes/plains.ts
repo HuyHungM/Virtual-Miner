@@ -1,7 +1,7 @@
 import type { Biome } from '../../types/Biome';
 
 export default {
-    name: 'Đồng bằng',
+    name: 'Bình Nguyên',
     id: 'plains',
     minimum_pickaxe: 'wooden_pickaxe',
     unlock_level: 1,

@@ -1,7 +1,7 @@
 import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: 'Cúp vàng',
+    name: 'Cúp Vàng',
     id: 'golden_pickaxe',
     biomes: ['ancient_forest'],
     price: 250000,

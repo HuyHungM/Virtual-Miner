@@ -13,33 +13,34 @@ import {
     type ColorResolvable,
 } from 'discord.js';
 
-import User from '../models/User';
 import type { Command } from '../types/Command';
+
+import { getUserOrReply, replyOrUpdate } from '../shared/discord/interaction';
 
 import {
     getNextShopLevel,
     getShopPage,
-} from '../services/shop/PickaxeShopService';
+} from '../modules/equipment/PickaxeShopService';
 import {
     getBoosts,
     getActiveBoosts,
     hasActiveBoost,
     getBoostRemainingTime,
     getBoostByGroup,
-} from '../services/shop/BoostShopService';
-import { getUpgradePage } from '../services/shop/UpgradeShopService';
-import { getPotionPrice } from '../services/shop/PotionShopService';
+} from '../modules/boost/BoostShopService';
+import { getUpgradePage } from '../modules/upgrade/UpgradeShopService';
+import { getPotionPrice } from '../modules/boost/PotionShopService';
 import {
     getBackpackBiomePage,
     getNextBackpackUnlock,
     getEquippedBackpack,
     isBackpackOwned,
-} from '../services/shop/BackpackShopService';
+} from '../modules/equipment/BackpackShopService';
 import {
     getActiveTrap,
     hasTrapImmunity,
     getImmunityRemainingMs,
-} from '../services/chest/TrapService';
+} from '../modules/chest/TrapService';
 import {
     getEmoji,
     setButtonEmoji,
@@ -53,48 +54,7 @@ import {
     EMOJI_BACKPACK,
     EMOJI_TRAP,
     EMOJI_CHECK,
-} from '../services/emoji/EmojiService';
-
-export async function getUserOrReply(
-    client: Parameters<Command['run']>[0],
-    interaction: Parameters<Command['run']>[1],
-) {
-    const user = await User.findOne({
-        userId: interaction.user.id,
-    });
-
-    if (!user) {
-        await interaction.reply({
-            content:
-                'Bạn chưa tạo tài khoản.\n' +
-                '`/start` để bắt đầu hành trình cày cuốc của bạn.',
-            flags: MessageFlags.Ephemeral,
-        });
-
-        return null;
-    }
-
-    return user;
-}
-
-function replyOrUpdate(
-    interaction: Parameters<Command['run']>[1],
-    build: () => ContainerBuilder,
-) {
-    const container = build();
-
-    if (interaction.isButton()) {
-        return interaction.update({
-            components: [container],
-            flags: MessageFlags.IsComponentsV2,
-        });
-    }
-
-    return interaction.reply({
-        components: [container],
-        flags: MessageFlags.IsComponentsV2,
-    });
-}
+} from '../shared/emoji/EmojiService';
 
 function backRow(backId: string) {
     return new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
@@ -724,7 +684,7 @@ export async function executeShopBackpacks(
                 }
 
                 const lines = [
-                    `### ${emoji} **Ba lô ${toRoman(backpack.tier)}**`,
+                    `### ${emoji} **${backpack.name}**`,
                     `*${pageBiome.name} • Tầng ${backpack.tier}/4*`,
                     `${getEmoji(client, EMOJI_CLOCK)} Giảm thời gian chờ: **-${backpack.tier * 0.25}s**`,
                     status,

@@ -2,7 +2,7 @@
 
 export default {
     id: 'legendary_abyss_backpack_2',
-    name: 'Ba lô II',
+    name: 'Ba lô Huyền Uyên II',
     biome: 'legendary_abyss',
     tier: 2,
     price: 20000000000,

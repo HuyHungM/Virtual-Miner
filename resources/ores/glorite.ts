@@ -1,7 +1,7 @@
 import type { Ore } from '../../types/Ore';
 
 export default {
-    name: 'Quặng glorite',
+    name: 'Glorite',
     id: 'glorite',
     emoji: '1544364444426047508',
     biome: 'legendary_abyss',

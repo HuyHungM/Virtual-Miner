@@ -1,7 +1,7 @@
 import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: 'Cúp tử vong',
+    name: 'Cúp Tử Vong',
     id: 'withergate_pickaxe',
     biomes: ['legendary_abyss'],
     price: 18_000_000_000,

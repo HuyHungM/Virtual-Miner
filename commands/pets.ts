@@ -15,11 +15,11 @@ import {
 import type { Command } from '../types/Command';
 import type { OwnedPet, Pet, PetRarity } from '../types/Pet';
 
-import { getUser } from '../services/user/UserService';
+import { getUserOrReply } from '../shared/discord/interaction';
 import {
     getRequiredPetXp,
     computePetStatBonus,
-} from '../services/pet/PetService';
+} from '../modules/pet/PetService';
 import {
     getEmoji,
     EMOJI_PET,
@@ -28,8 +28,8 @@ import {
     EMOJI_ATK,
     EMOJI_DEF,
     EMOJI_CHECK,
-} from '../services/emoji/EmojiService';
-import { PET_MAX_LEVEL } from '../services/balance/BalanceConfig';
+} from '../shared/emoji/EmojiService';
+import { PET_MAX_LEVEL } from '../config/BalanceConfig';
 
 export type PetTab = 'collection' | 'owned';
 
@@ -432,17 +432,9 @@ export async function executePets(
     tab: PetTab = 'owned',
     page = 0,
 ) {
-    const user = await getUser(interaction.user.id);
+    const user = await getUserOrReply(client, interaction);
 
-    if (!user) {
-        await interaction.reply({
-            content:
-                'Bạn chưa tạo tài khoản.\n' +
-                '`/start` để bắt đầu hành trình cày cuốc của bạn.',
-            flags: MessageFlags.Ephemeral,
-        });
-        return;
-    }
+    if (!user) return;
 
     const authorName = interaction.user.username;
 

@@ -1,10 +1,6 @@
 export type TrapType = 'stun' | 'mining_slow' | 'piglin_robbery';
 
-export type ChestKind =
-    | 'normal'
-    | 'stun'
-    | 'mining_slow'
-    | 'piglin_robbery';
+export type ChestKind = 'normal' | 'stun' | 'mining_slow' | 'piglin_robbery';
 
 export interface StunTrapState {
     type: 'stun';

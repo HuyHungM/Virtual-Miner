@@ -1,9 +1,9 @@
 import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: 'Cúp mithril',
+    name: 'Cúp Mithril',
     id: 'mithril_pickaxe',
-    biomes: ['volcano_core'],
+    biomes: ['hell_core'],
     price: 2_500_000_000,
     unlock_level: 250,
     description: 'Từ lòng núi sâu, ngân quang dần thức tỉnh.',

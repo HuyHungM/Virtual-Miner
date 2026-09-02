@@ -2,7 +2,7 @@
 
 export default {
     id: 'legendary_abyss_backpack_4',
-    name: 'Ba lô IV',
+    name: 'Ba lô Huyền Uyên IV',
     biome: 'legendary_abyss',
     tier: 4,
     price: 50000000000,

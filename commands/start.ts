@@ -1,8 +1,8 @@
 import { MessageFlags } from 'discord.js';
 import type { Command } from '../types/Command';
-import { createUser, getUser } from '../services/user/UserService';
-import { createInventory } from '../services/inventory/InventoryService';
-import { createHistory } from '../services/history/HistoryService';
+import { createUser, getUser } from '../modules/user/UserService';
+import { createInventory } from '../modules/inventory/InventoryService';
+import { createHistory } from '../modules/history/HistoryService';
 
 export default {
     name: 'start',

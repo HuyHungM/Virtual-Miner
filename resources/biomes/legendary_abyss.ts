@@ -1,7 +1,7 @@
 import type { Biome } from '../../types/Biome';
 
 export default {
-    name: 'Vực sâu huyền thoại',
+    name: 'Huyền Uyên',
     id: 'legendary_abyss',
     minimum_pickaxe: 'obsidian_pickaxe',
     unlock_level: 500,

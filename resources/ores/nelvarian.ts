@@ -1,7 +1,7 @@
 import type { Ore } from '../../types/Ore';
 
 export default {
-    name: 'Quặng nelvarian',
+    name: 'Nelvarian',
     id: 'nelvarian',
     emoji: '1544364437710971030',
     biome: 'legendary_abyss',

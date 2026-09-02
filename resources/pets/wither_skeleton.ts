@@ -2,7 +2,7 @@ import type { Pet } from '../../types/Pet';
 
 export default {
     id: 'wither_skeleton',
-    name: 'Wither Skeleton',
+    name: 'Bộ xương Wither',
     emoji: '1544019329203437728',
     rarity: 'legendary',
     description: 'Wither Skeleton - Bóng ma lang thang giữa pháo đài.',

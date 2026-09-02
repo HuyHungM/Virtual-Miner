@@ -11,8 +11,9 @@ import {
     type ColorResolvable,
 } from 'discord.js';
 
-import User from '../models/User';
 import type { Command } from '../types/Command';
+
+import { getUserOrReply } from '../shared/discord/interaction';
 
 import {
     getEmoji,
@@ -24,7 +25,9 @@ import {
     EMOJI_SHOP,
     EMOJI_MAP,
     EMOJI_GLOBE,
-} from '../services/emoji/EmojiService';
+    EMOJI_QUEST,
+    EMOJI_GIFT,
+} from '../shared/emoji/EmojiService';
 
 const MENU_ITEMS: {
     id: string;
@@ -32,6 +35,36 @@ const MENU_ITEMS: {
     desc: string;
     emoji: string;
 }[] = [
+    {
+        id: 'menu:profile',
+        title: 'Hồ sơ',
+        desc: 'Xem hồ sơ của bạn hoặc người khác.',
+        emoji: EMOJI_GLOBE,
+    },
+    {
+        id: 'menu:quest',
+        title: 'Nhiệm vụ',
+        desc: 'Xem và nhận thưởng nhiệm vụ hằng ngày.',
+        emoji: EMOJI_QUEST,
+    },
+    {
+        id: 'menu:shop',
+        title: 'Cửa hàng',
+        desc: 'Mua cúp, thuốc và nâng cấp.',
+        emoji: EMOJI_SHOP,
+    },
+    {
+        id: 'menu:pets',
+        title: 'Thú cưng',
+        desc: 'Xem và quản lý thú cưng.',
+        emoji: EMOJI_PET,
+    },
+    {
+        id: 'menu:biome',
+        title: 'Biome',
+        desc: 'Chọn vùng khai thác.',
+        emoji: EMOJI_MAP,
+    },
     {
         id: 'menu:mine',
         title: 'Đi đào',
@@ -45,28 +78,10 @@ const MENU_ITEMS: {
         emoji: EMOJI_MONEY,
     },
     {
-        id: 'menu:profile',
-        title: 'Hồ sơ',
-        desc: 'Xem hồ sơ của bạn hoặc người khác.',
-        emoji: EMOJI_GLOBE,
-    },
-    {
-        id: 'menu:pets',
-        title: 'Thú cưng',
-        desc: 'Xem và quản lý thú cưng.',
-        emoji: EMOJI_PET,
-    },
-    {
-        id: 'menu:shop',
-        title: 'Cửa hàng',
-        desc: 'Mua cúp, thuốc và nâng cấp.',
-        emoji: EMOJI_SHOP,
-    },
-    {
-        id: 'menu:biome',
-        title: 'Biome',
-        desc: 'Chọn vùng khai thác.',
-        emoji: EMOJI_MAP,
+        id: 'menu:daily',
+        title: 'Phần thưởng hằng ngày',
+        desc: 'Nhận phần thưởng mỗi 12 giờ.',
+        emoji: EMOJI_GIFT,
     },
 ];
 
@@ -74,20 +89,9 @@ export async function executeMenu(
     client: Parameters<Command['run']>[0],
     interaction: Parameters<Command['run']>[1],
 ) {
-    const user = await User.findOne({
-        userId: interaction.user.id,
-    });
+    const user = await getUserOrReply(client, interaction);
 
-    if (!user) {
-        await interaction.reply({
-            content:
-                'Bạn chưa tạo tài khoản.\n' +
-                '`/start` để bắt đầu hành trình cày cuốc của bạn.',
-            flags: MessageFlags.Ephemeral,
-        });
-
-        return;
-    }
+    if (!user) return;
 
     const container = new ContainerBuilder().setAccentColor(
         resolveColor(user.color as ColorResolvable),

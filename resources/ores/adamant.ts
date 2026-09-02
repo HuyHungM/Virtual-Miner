@@ -1,10 +1,10 @@
 import type { Ore } from '../../types/Ore';
 
 export default {
-    name: 'Quặng adamant',
-    id: 'adamant',
+    name: 'Adamantium',
+    id: 'adamantium',
     emoji: '1544364446904746115',
-    biome: 'volcano_core',
+    biome: 'hell_core',
     value: 430,
     xp: 290,
     chance: 12,

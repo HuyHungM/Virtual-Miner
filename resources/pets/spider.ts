@@ -2,7 +2,7 @@ import type { Pet } from '../../types/Pet';
 
 export default {
     id: 'spider',
-    name: 'Spider',
+    name: 'Nhện',
     emoji: '1544019290070585494',
     rarity: 'rare',
     description: 'Spider - Bóng đen bò qua những vách đá.',

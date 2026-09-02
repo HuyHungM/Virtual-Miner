@@ -1,9 +1,9 @@
 import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: 'Cúp titan',
+    name: 'Cúp Titanium',
     id: 'titanium_pickaxe',
-    biomes: ['volcano_core'],
+    biomes: ['hell_core'],
     price: 1_500_000_000,
     unlock_level: 250,
     description: 'Địa hỏa nung tôi, nhưng chẳng thể khuất phục.',

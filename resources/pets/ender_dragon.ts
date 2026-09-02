@@ -2,7 +2,7 @@ import type { Pet } from '../../types/Pet';
 
 export default {
     id: 'ender_dragon',
-    name: 'Ender Dragon',
+    name: 'Rồng Ender',
     emoji: '1544040264811942059',
     rarity: 'mythic',
     description: 'Ender Dragon - Chúa tể của tận cùng.',

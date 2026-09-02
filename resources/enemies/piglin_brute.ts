@@ -2,7 +2,7 @@ import type { EnemyDef } from '../../types/Enemy';
 
 export default {
     id: 'piglin',
-    name: 'Piglin hung bạo',
+    name: 'Piglin Hung Bạo',
     emoji: '1544263373976244296',
     combat_stats: {
         attack: 32,

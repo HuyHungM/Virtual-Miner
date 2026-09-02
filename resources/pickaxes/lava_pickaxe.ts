@@ -1,9 +1,9 @@
 import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: 'Cúp dung nham',
+    name: 'Cúp Dung Nham',
     id: 'lava_pickaxe',
-    biomes: ['volcano_core'],
+    biomes: ['hell_core'],
     price: 7_500_000_000,
     unlock_level: 250,
     description: 'Hỏa diễm nung đỏ, sức mạnh từ lòng đất trỗi dậy.',

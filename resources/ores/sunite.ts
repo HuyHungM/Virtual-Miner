@@ -1,7 +1,7 @@
 import type { Ore } from '../../types/Ore';
 
 export default {
-    name: 'Quặng sunite',
+    name: 'Sunite',
     id: 'sunite',
     emoji: '1544364420182970449',
     biome: 'legendary_abyss',

@@ -1,7 +1,7 @@
 import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: 'Cúp hoàng ngọc',
+    name: 'Cúp Hoàng Ngọc',
     id: 'topaz_pickaxe',
     biomes: ['ancient_forest'],
     price: 6000000,

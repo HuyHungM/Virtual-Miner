@@ -1,7 +1,7 @@
 import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: 'Cúp hắc diện thạch',
+    name: 'Cúp Hắc Diện Thạch',
     id: 'obsidian_pickaxe',
     biomes: ['legendary_abyss'],
     price: 12_000_000_000,

@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 
-import { MAX_SAFE_MONEY, MAX_SAFE_XP } from '../services/balance/BalanceConfig';
+import { MAX_SAFE_MONEY, MAX_SAFE_XP } from '../config/BalanceConfig';
 
 const UserSchema = new Schema(
     {

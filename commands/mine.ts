@@ -14,9 +14,9 @@ import {
 
 import type { Command } from '../types/Command';
 
-import { mine } from '../services/mining/MiningService';
-import { getUser } from '../services/user/UserService';
-import { computePetStatBonus } from '../services/pet/PetService';
+import { mine } from '../modules/mining/MiningService';
+import { getUserOrReply } from '../shared/discord/interaction';
+import { computePetStatBonus } from '../modules/pet/PetService';
 import {
     getEmoji,
     setButtonEmoji,
@@ -36,7 +36,7 @@ import {
     EMOJI_HP,
     EMOJI_ATK,
     EMOJI_DEF,
-} from '../services/emoji/EmojiService';
+} from '../shared/emoji/EmojiService';
 
 function formatDuration(ms: number): string {
     const totalSeconds = Math.max(1, Math.ceil(ms / 1000));
@@ -72,18 +72,9 @@ function createButtons(client: Client, pickaxeEmoji: string) {
 }
 
 async function executeMine(client: Client, interaction: any) {
-    const user = await getUser(interaction.user.id);
+    const user = await getUserOrReply(client, interaction);
 
-    if (!user) {
-        await interaction.reply({
-            content:
-                'Bạn chưa tạo tài khoản.\n' +
-                '`/start` để bắt đầu hành trình cày cuốc của bạn.',
-            flags: MessageFlags.Ephemeral,
-        });
-
-        return;
-    }
+    if (!user) return;
 
     const result = await mine(client, user, interaction.channel);
 

@@ -2,7 +2,7 @@ import type { Pet } from '../../types/Pet';
 
 export default {
     id: 'chicken',
-    name: 'Chicken',
+    name: 'Gà',
     emoji: '1544019312644456489',
     rarity: 'common',
     description: 'Đừng đánh giá thấp một chú gà.',

@@ -1,7 +1,7 @@
 import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: 'Cúp gỗ',
+    name: 'Cúp Gỗ',
     id: 'wooden_pickaxe',
     biomes: ['plains'],
     price: 0,

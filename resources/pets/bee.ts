@@ -2,7 +2,7 @@ import type { Pet } from '../../types/Pet';
 
 export default {
     id: 'bee',
-    name: 'Bee',
+    name: 'Ong',
     emoji: '1544019322446413995',
     rarity: 'uncommon',
     description: 'Nhỏ bé nhưng đầy sức mạnh.',

@@ -15,17 +15,17 @@ import {
 
 import type { Command } from '../types/Command';
 
-import { getUser } from '../services/user/UserService';
-import { getInventory } from '../services/inventory/InventoryService';
-import { getHistory } from '../services/history/HistoryService';
-import { getPlayerMultipliers } from '../services/stats/StatsService';
-import { getRequiredXp } from '../services/level/LevelService';
+import { getUser } from '../modules/user/UserService';
+import { getInventory } from '../modules/inventory/InventoryService';
+import { getHistory } from '../modules/history/HistoryService';
+import { getPlayerMultipliers } from '../modules/stats/StatsService';
+import { getRequiredXp } from '../modules/progression/ProgressionService';
 import {
     getCharmCopiesRequired,
     calculateCharmBonus,
     getOwnedCharm,
-} from '../services/charm/CharmService';
-import { CHARM_MAX_LEVEL } from '../services/balance/BalanceConfig';
+} from '../modules/charm/CharmService';
+import { CHARM_MAX_LEVEL } from '../config/BalanceConfig';
 import {
     getEmoji,
     EMOJI_MONEY,
@@ -36,11 +36,11 @@ import {
     EMOJI_FORTUNE,
     EMOJI_BACKPACK,
     EMOJI_PET,
-} from '../services/emoji/EmojiService';
+} from '../shared/emoji/EmojiService';
 import {
     calculateSellMultiplier,
     calculateSellResult,
-} from '../services/sell/SellService';
+} from '../modules/economy/SellService';
 
 type ProfileTab = 'inv' | 'stats' | 'hist' | 'charms';
 

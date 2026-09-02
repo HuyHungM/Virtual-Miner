@@ -2,7 +2,7 @@ import type { Pet } from '../../types/Pet';
 
 export default {
     id: 'zombie',
-    name: 'Zombie',
+    name: 'Thây ma',
     emoji: '1544019276107747368',
     rarity: 'rare',
     description: 'Zombie - Bóng hình mục rữa giữa màn đêm.',

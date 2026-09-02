@@ -2,7 +2,7 @@
 
 export default {
     id: 'ancient_forest_backpack_3',
-    name: 'Ba lô III',
+    name: 'Ba lô Cổ Lâm III',
     biome: 'ancient_forest',
     tier: 3,
     price: 4000000,

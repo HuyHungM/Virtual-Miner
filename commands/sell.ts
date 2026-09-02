@@ -13,9 +13,9 @@ import {
 
 import type { Command } from '../types/Command';
 
-import { sellAll } from '../services/sell/SellService';
-import { getUpgradeStats } from '../services/upgrade/UpgradeService';
-import { getUser } from '../services/user/UserService';
+import { sellAll } from '../modules/economy/SellService';
+import { getUpgradeStats } from '../modules/upgrade/UpgradeService';
+import { getUserOrReply } from '../shared/discord/interaction';
 import {
     getEmoji,
     setButtonEmoji,
@@ -23,9 +23,9 @@ import {
     EMOJI_PICKAXE,
     EMOJI_INVENTORY,
     EMOJI_ENDERCHEST,
-} from '../services/emoji/EmojiService';
-import { getPetBonusForStat } from '../services/pet/PetStatService';
-import { getCharmBonusForStat } from '../services/charm/CharmService';
+} from '../shared/emoji/EmojiService';
+import { getPetBonusForStat } from '../modules/pet/PetStatService';
+import { getCharmBonusForStat } from '../modules/charm/CharmService';
 
 function createButtons(client: Parameters<Command['run']>[0]) {
     const againButton = new ButtonBuilder()
@@ -43,18 +43,9 @@ export default {
     description: 'Bán toàn bộ khoáng sản',
 
     run: async (client, interaction) => {
-        const user = await getUser(interaction.user.id);
+        const user = await getUserOrReply(client, interaction);
 
-        if (!user) {
-            await interaction.reply({
-                content:
-                    'Bạn chưa tạo tài khoản.\n' +
-                    '`/start` để bắt đầu hành trình cày cuốc của bạn.',
-                flags: MessageFlags.Ephemeral,
-            });
-
-            return;
-        }
+        if (!user) return;
 
         const result = await sellAll(client, user, interaction.channel);
 

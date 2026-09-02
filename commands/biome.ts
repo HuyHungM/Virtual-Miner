@@ -13,56 +13,16 @@ import {
     type MessageActionRowComponentBuilder,
 } from 'discord.js';
 
-import User from '../models/User';
 import type { Command } from '../types/Command';
+
+import { getUserOrReply, replyOrUpdate } from '../shared/discord/interaction';
 
 import {
     getEmoji,
     EMOJI_MONEY,
     EMOJI_MAP,
     EMOJI_GLOBE,
-} from '../services/emoji/EmojiService';
-
-export async function getUserOrReply(
-    client: Parameters<Command['run']>[0],
-    interaction: Parameters<Command['run']>[1],
-) {
-    const user = await User.findOne({
-        userId: interaction.user.id,
-    });
-
-    if (!user) {
-        await interaction.reply({
-            content:
-                'Bạn chưa tạo tài khoản.\n' +
-                '`/start` để bắt đầu hành trình cày cuốc của bạn.',
-            flags: MessageFlags.Ephemeral,
-        });
-
-        return null;
-    }
-
-    return user;
-}
-
-function replyOrUpdate(
-    interaction: Parameters<Command['run']>[1],
-    build: () => ContainerBuilder,
-) {
-    const container = build();
-
-    if (interaction.isButton()) {
-        return interaction.update({
-            components: [container],
-            flags: MessageFlags.IsComponentsV2,
-        });
-    }
-
-    return interaction.reply({
-        components: [container],
-        flags: MessageFlags.IsComponentsV2,
-    });
-}
+} from '../shared/emoji/EmojiService';
 
 export async function executeBiome(
     client: Parameters<Command['run']>[0],

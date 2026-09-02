@@ -1,10 +1,10 @@
 import type { Ore } from '../../types/Ore';
 
 export default {
-    name: 'Quặng mithril',
+    name: 'Mithril',
     id: 'mithril',
     emoji: '1544364439707586660',
-    biome: 'volcano_core',
+    biome: 'hell_core',
     value: 320,
     xp: 220,
     chance: 20,

@@ -1,4 +1,4 @@
-import { EMOJI_MILK } from '../../services/emoji/EmojiService';
+import { EMOJI_MILK } from '../../shared/emoji/EmojiService';
 import type { Potion } from '../../types/Potion';
 
 export default {

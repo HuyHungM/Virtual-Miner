@@ -2,7 +2,7 @@
 
 export default {
     id: 'plains_backpack_3',
-    name: 'Ba lô III',
+    name: 'Ba lô Bình Nguyên III',
     biome: 'plains',
     tier: 3,
     price: 120000,

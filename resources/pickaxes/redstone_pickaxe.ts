@@ -1,7 +1,7 @@
 import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: 'Cúp đá đỏ',
+    name: 'Cúp Đá Đỏ',
     id: 'redstone_pickaxe',
     biomes: ['ancient_forest'],
     price: 2500000,

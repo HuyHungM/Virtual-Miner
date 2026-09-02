@@ -2,7 +2,7 @@ import type { Pet } from '../../types/Pet';
 
 export default {
     id: 'cat',
-    name: 'Cat',
+    name: 'Mèo',
     emoji: '1544019315689390090',
     rarity: 'uncommon',
     description: 'Nhỏ nhắn, nhanh nhẹn và bí ẩn.',

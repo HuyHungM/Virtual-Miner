@@ -1,7 +1,7 @@
 import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: 'Cúp phỉ thúy',
+    name: 'Cúp Phỉ Thúy',
     id: 'verdite_pickaxe',
     biomes: ['gem_highlands'],
     price: 550000000,

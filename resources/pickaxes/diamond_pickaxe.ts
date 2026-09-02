@@ -1,7 +1,7 @@
 import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: 'Cúp kim cương',
+    name: 'Cúp Kim Cương',
     id: 'diamond_pickaxe',
     biomes: ['gem_highlands'],
     price: 900000000,

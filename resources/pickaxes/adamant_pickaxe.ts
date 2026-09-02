@@ -1,9 +1,9 @@
 import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: 'Cúp adamant',
-    id: 'adamant_pickaxe',
-    biomes: ['volcano_core'],
+    name: 'Cúp Adamantium',
+    id: 'adamantium_pickaxe',
+    biomes: ['hell_core'],
     price: 3_800_000_000,
     unlock_level: 250,
     description: 'Được tinh luyện từ địa tâm, mang uy lực bất hoại.',

@@ -1,7 +1,7 @@
 import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: 'Cúp ngọc bích',
+    name: 'Cúp Ngọc Bích',
     id: 'aquamarine_pickaxe',
     biomes: ['gem_highlands'],
     price: 320000000,

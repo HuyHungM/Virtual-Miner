@@ -1,4 +1,4 @@
-import { EMOJI_RESIST } from '../../services/emoji/EmojiService';
+import { EMOJI_RESIST } from '../../shared/emoji/EmojiService';
 import type { Potion } from '../../types/Potion';
 
 export default {

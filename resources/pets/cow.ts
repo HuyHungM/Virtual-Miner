@@ -2,7 +2,7 @@ import type { Pet } from '../../types/Pet';
 
 export default {
     id: 'cow',
-    name: 'Cow',
+    name: 'Bò',
     emoji: '1544019310656233532',
     rarity: 'common',
     description: 'Sức mạnh đến từ sự kiên nhẫn.',

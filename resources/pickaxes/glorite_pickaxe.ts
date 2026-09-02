@@ -1,7 +1,7 @@
 import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: 'Cúp huy hoàng',
+    name: 'Cúp Huy Hoàng',
     id: 'glorite_pickaxe',
     biomes: ['legendary_abyss'],
     price: 36_000_000_000,

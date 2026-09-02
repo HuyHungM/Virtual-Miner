@@ -1,7 +1,7 @@
 import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: 'Cúp nelvarian',
+    name: "Cúp Nel'varian",
     id: 'nelvarian_pickaxe',
     biomes: ['legendary_abyss'],
     price: 50_000_000_000,

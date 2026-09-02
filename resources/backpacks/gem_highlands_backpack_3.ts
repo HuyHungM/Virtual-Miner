@@ -2,7 +2,7 @@
 
 export default {
     id: 'gem_highlands_backpack_3',
-    name: 'Ba lô III',
+    name: 'Ba lô Thạch Ngọc III',
     biome: 'gem_highlands',
     tier: 3,
     price: 170000000,

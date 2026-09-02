@@ -1,7 +1,7 @@
 import type { Pickaxe } from '../../types/Pickaxe';
 
 export default {
-    name: 'Cúp hồng ngọc',
+    name: 'Cúp Hồng Ngọc',
     id: 'ruby_pickaxe',
     biomes: ['gem_highlands'],
     price: 180000000,
