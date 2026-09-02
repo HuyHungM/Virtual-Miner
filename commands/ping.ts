@@ -14,6 +14,7 @@ export default {
     description: 'Kiểm tra độ trễ của bot',
     run: async (client, interaction) => {
         const apiLatency = client.ws.ping;
+        const apiLatencyText = apiLatency < 0 ? '…' : `${apiLatency}ms`;
         const botLatency = Date.now() - interaction.createdTimestamp;
 
         const container = new ContainerBuilder().setAccentColor(
@@ -32,7 +33,7 @@ export default {
             new TextDisplayBuilder().setContent(
                 [
                     `**Bot latency:** ${botLatency}ms`,
-                    `**API latency:** ${apiLatency}ms`,
+                    `**API latency:** ${apiLatencyText}`,
                 ].join('\n'),
             ),
         );
