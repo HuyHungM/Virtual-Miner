@@ -14,7 +14,6 @@ import {
 import type { Command } from '../types/Command';
 
 import { sellAll } from '../modules/economy/SellService';
-import { getUpgradeStats } from '../modules/upgrade/UpgradeService';
 import { getUserOrReply } from '../shared/discord/interaction';
 import {
     getEmoji,
@@ -24,8 +23,6 @@ import {
     EMOJI_INVENTORY,
     EMOJI_ENDERCHEST,
 } from '../shared/emoji/EmojiService';
-import { getPetBonusForStat } from '../modules/pet/PetStatService';
-import { getCharmBonusForStat } from '../modules/charm/CharmService';
 
 function createButtons(client: Parameters<Command['run']>[0]) {
     const againButton = new ButtonBuilder()
@@ -35,7 +32,15 @@ function createButtons(client: Parameters<Command['run']>[0]) {
 
     setButtonEmoji(againButton, client, EMOJI_PICKAXE);
 
-    return new ActionRowBuilder<ButtonBuilder>().addComponents(againButton);
+    const menuButton = new ButtonBuilder()
+        .setCustomId('mining:menu')
+        .setLabel('Quay lại')
+        .setStyle(ButtonStyle.Secondary);
+
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(
+        againButton,
+        menuButton,
+    );
 }
 
 export async function executeSell(
@@ -93,11 +98,17 @@ export async function executeSell(
             ),
         );
 
+    container.addSeparatorComponents(
+        new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small),
+    );
+
     const buttons = createButtons(client);
+
+    container.addActionRowComponents(buttons);
 
     if (interaction.isButton()) {
         await interaction.update({
-            components: [container, buttons],
+            components: [container],
             flags: MessageFlags.IsComponentsV2,
         });
 
@@ -105,7 +116,7 @@ export async function executeSell(
     }
 
     await interaction.reply({
-        components: [container, buttons],
+        components: [container],
         flags: MessageFlags.IsComponentsV2,
     });
 }
