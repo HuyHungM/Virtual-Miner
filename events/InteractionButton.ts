@@ -1,6 +1,7 @@
 import { Events, type Client } from 'discord.js';
 
 import { dispatchButton } from '../buttons';
+import { replyV2Error } from '../shared/discord/interaction';
 
 export default async (client: Client) => {
     client.on(Events.InteractionCreate, async (interaction) => {
@@ -8,6 +9,15 @@ export default async (client: Client) => {
             return;
         }
 
-        await dispatchButton(client, interaction);
+        try {
+            await dispatchButton(client, interaction);
+        } catch (error) {
+            console.error(`Button "${interaction.customId}" failed:`, error);
+
+            await replyV2Error(
+                interaction,
+                'Đã xảy ra lỗi khi thực hiện thao tác này.',
+            );
+        }
     });
 };

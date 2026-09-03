@@ -2,7 +2,6 @@ import {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
-    cleanCodeBlockContent,
     ContainerBuilder,
     MessageFlags,
     resolveColor,

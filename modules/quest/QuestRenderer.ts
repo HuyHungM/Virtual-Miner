@@ -22,7 +22,6 @@ import {
 import {
     getQuestDef,
     formatQuestGoal,
-    type DailyQuest,
     type QuestCompletedNotice,
     type QuestRewardGrant,
 } from './QuestService';

@@ -1,14 +1,7 @@
 import mongoose from 'mongoose';
-import type {
-    Client,
-    Collection,
-    TextBasedChannel,
-    ColorResolvable,
-} from 'discord.js';
+import type { Client, TextBasedChannel, ColorResolvable } from 'discord.js';
 
-import type { Ore } from '../../types/Ore';
 import { clearInventory, getInventory } from '../inventory/InventoryService';
-import { getUser } from '../user/UserService';
 import { updateBalance } from './BalanceService';
 import { getUpgradeStats } from '../upgrade/UpgradeService';
 import { getPetBonusForStat } from '../pet/PetStatService';

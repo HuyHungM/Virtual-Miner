@@ -4,7 +4,6 @@ import {
     TextDisplayBuilder,
     ButtonBuilder,
     ButtonStyle,
-    MessageFlags,
     resolveColor,
     ActionRowBuilder,
     SeparatorBuilder,

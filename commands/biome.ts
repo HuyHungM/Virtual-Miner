@@ -3,7 +3,6 @@ import {
     ButtonBuilder,
     ButtonStyle,
     ContainerBuilder,
-    MessageFlags,
     resolveColor,
     SectionBuilder,
     SeparatorBuilder,
@@ -17,12 +16,7 @@ import type { Command } from '../types/Command';
 
 import { getUserOrReply, replyOrUpdate } from '../shared/discord/interaction';
 
-import {
-    getEmoji,
-    EMOJI_MONEY,
-    EMOJI_MAP,
-    EMOJI_GLOBE,
-} from '../shared/emoji/EmojiService';
+import { getEmoji, EMOJI_MONEY, EMOJI_MAP } from '../shared/emoji/EmojiService';
 
 export async function executeBiome(
     client: Parameters<Command['run']>[0],

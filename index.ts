@@ -74,6 +74,18 @@ client.resources = {
     enemies,
 };
 
+client.on('error', (error) => {
+    console.error('Client error:', error);
+});
+
+process.on('unhandledRejection', (reason) => {
+    console.error('Unhandled rejection:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught exception:', error);
+});
+
 try {
     await runMongoose();
     await runResource(client);

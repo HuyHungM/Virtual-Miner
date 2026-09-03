@@ -1,4 +1,9 @@
-import { ContainerBuilder, MessageFlags, type Client } from 'discord.js';
+import {
+    ContainerBuilder,
+    MessageFlags,
+    TextDisplayBuilder,
+    type Client,
+} from 'discord.js';
 
 import User from '../../models/User';
 import type { CommandInteraction } from '../../types/Command';
@@ -53,4 +58,35 @@ export function replyOrUpdate(
         components: [container],
         flags: MessageFlags.IsComponentsV2,
     });
+}
+
+/**
+ * Renders a Component V2 error container, editing the message when the
+ * interaction has already been deferred/replied (which is required after a V2
+ * card exists) and replying otherwise. Never throws, so it is safe to call
+ * from catch blocks.
+ */
+export async function replyV2Error(
+    interaction: CommandInteraction,
+    message: string,
+) {
+    const container = new ContainerBuilder().addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(message),
+    );
+
+    try {
+        if (interaction.deferred || interaction.replied) {
+            await interaction.editReply({
+                components: [container],
+                flags: MessageFlags.IsComponentsV2,
+            });
+        } else {
+            await interaction.reply({
+                components: [container],
+                flags: MessageFlags.IsComponentsV2,
+            });
+        }
+    } catch {
+        // Interaction may have expired; never throw from an error handler.
+    }
 }

@@ -128,19 +128,19 @@ export const CHARM_LEVEL_SCALE_FACTOR = 0.02;
 // ============================================
 
 // ---- Chest type distribution (FIXED, independent of level) ----
-export const CHEST_NORMAL_CHANCE = 0;
-export const CHEST_TRAPPED_CHANCE = 100;
+export const CHEST_NORMAL_CHANCE = 70;
+export const CHEST_TRAPPED_CHANCE = 30;
 
 // ---- Trap selection weights inside a Trapped Chest (normalized) ----
 export const TRAP_WEIGHTS: Record<string, number> = {
-    stun: 0,
-    mining_slow: 0,
-    piglin_robbery: 100,
+    stun: 40,
+    mining_slow: 40,
+    piglin_robbery: 20,
 };
 
 // ---- Minimum player level for each trap ----
 export const TRAP_MIN_LEVEL: Record<string, number> = {
-    stun: 1,
+    stun: 5,
     mining_slow: 20,
     piglin_robbery: 150,
 };
@@ -156,7 +156,7 @@ export const TRAP_SELECTION_SCALE_START: Record<string, number> = {
 /** Possible stun durations in minutes. */
 export const STUN_DURATIONS = [1, 3, 5, 10];
 /** Level from which longer stuns (5m/10m) become increasingly likely. */
-export const STUN_STRONG_START_LEVEL = 5;
+export const STUN_STRONG_START_LEVEL = 25;
 /** Max % weight tallied to the "strong" (5m/10m) durations at high level. */
 export const STUN_STRONG_MAX_WEIGHT = 0.6;
 
@@ -164,7 +164,7 @@ export const STUN_STRONG_MAX_WEIGHT = 0.6;
 /** Possible mining slow percentages. */
 export const SLOW_VALUES = [0.15, 0.3, 0.45, 0.7];
 /** Level from which stronger slows (45%/70%) become increasingly likely. */
-export const SLOW_STRONG_START_LEVEL = 30;
+export const SLOW_STRONG_START_LEVEL = 100;
 /** The 70% slow always occupies this weight share of Mining Slow outcomes. */
 export const SLOW_70_PCT = 0.05;
 /** Max % weight tallied to the "strong" (45%/70%) slows at high level. */

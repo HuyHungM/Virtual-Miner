@@ -1,5 +1,4 @@
 import type { ClientSession } from 'mongoose';
-import type { Client } from 'discord.js';
 
 import {
     MILK_PRICE_LOW,

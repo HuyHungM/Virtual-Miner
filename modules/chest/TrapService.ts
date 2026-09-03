@@ -4,7 +4,7 @@ import type { Client } from 'discord.js';
 import User from '../../models/User';
 import { getEquippedPet } from '../pet/PetService';
 import { hasActiveBoost, getActiveBoosts } from '../boost/BoostShopService';
-import type { ActiveTrap, TrapType } from '../../types/Trap';
+import type { ActiveTrap } from '../../types/Trap';
 
 export const IMMUNITY_BOOST_ID = 'trap_resist';
 export const MILK_ID = 'milk';

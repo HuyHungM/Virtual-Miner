@@ -72,16 +72,4 @@ export const menuRoutes: ButtonRoute[] = [
             await executeDaily(client, interaction);
         },
     },
-    {
-        id: 'mine:again',
-        handle: async (client, interaction) => {
-            await runSlashCommand(client, interaction, 'mine');
-        },
-    },
-    {
-        id: 'mine:sell',
-        handle: async (client, interaction) => {
-            await runSlashCommand(client, interaction, 'sell');
-        },
-    },
 ];

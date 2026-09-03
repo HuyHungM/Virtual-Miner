@@ -6,6 +6,7 @@ import { biomeRoutes } from './biome';
 import { petsRoutes } from './pets';
 import { profileRoutes } from './profile';
 import { shopRoutes } from './shop';
+import { miningRoutes } from './mining';
 
 const BUTTON_ROUTES: ButtonRoute[] = [
     ...menuRoutes,
@@ -13,6 +14,7 @@ const BUTTON_ROUTES: ButtonRoute[] = [
     ...biomeRoutes,
     ...petsRoutes,
     ...profileRoutes,
+    ...miningRoutes,
 ];
 
 export async function dispatchButton(

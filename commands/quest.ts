@@ -3,7 +3,6 @@ import {
     ButtonBuilder,
     ButtonStyle,
     ContainerBuilder,
-    MessageFlags,
     resolveColor,
     SectionBuilder,
     SeparatorBuilder,

@@ -1,11 +1,9 @@
 import type { TrapType } from '../../types/Trap';
 import {
     CHEST_NORMAL_CHANCE,
-    CHEST_TRAPPED_CHANCE,
     TRAP_WEIGHTS,
     TRAP_MIN_LEVEL,
     TRAP_SELECTION_SCALE_START,
-    STUN_DURATIONS,
     STUN_STRONG_START_LEVEL,
     STUN_STRONG_MAX_WEIGHT,
     SLOW_VALUES,
